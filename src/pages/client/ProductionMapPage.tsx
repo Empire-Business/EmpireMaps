@@ -7,6 +7,7 @@ import {
   useSensors,
   type DragEndEvent,
   type DragStartEvent,
+  useDroppable,
 } from '@dnd-kit/core'
 import {
   SortableContext,
@@ -690,8 +691,17 @@ interface KanbanColumnProps {
 }
 
 function KanbanColumn({ column, cards, activeId, onAddCard, onCardClick }: KanbanColumnProps) {
+  const { setNodeRef, isOver } = useDroppable({ id: column.id })
+
   return (
-    <div className={cn('bg-empire-card border border-empire-border border-t-2 flex flex-col min-h-96', column.color)}>
+    <div
+      ref={setNodeRef}
+      className={cn(
+        'bg-empire-card border border-empire-border border-t-2 flex flex-col min-h-96 transition-colors',
+        column.color,
+        isOver && 'border-empire-gold/50 bg-empire-gold/5'
+      )}
+    >
       <div className="px-3 py-3 flex items-center justify-between border-b border-empire-border">
         <div className="flex items-center gap-2">
           <span className="text-empire-text text-sm font-medium">{column.label}</span>
@@ -758,12 +768,25 @@ export default function ProductionMapPage() {
     const { active, over } = event
     if (!over || active.id === over.id) return
 
-    const targetColumnId = COLUMNS.find((col) => col.id === over.id)?.id
+    // Check if dropped directly on a column
+    let targetColumnId = COLUMNS.find((col) => col.id === over.id)?.id
+
+    // If dropped on a card, find which column that card belongs to
+    if (!targetColumnId) {
+      const targetCard = cards?.find((c) => c.id === over.id)
+      if (targetCard) {
+        targetColumnId = targetCard.status
+      }
+    }
+
     if (targetColumnId) {
-      await updateCard.mutateAsync({
-        cardId: active.id as string,
-        data: { status: targetColumnId },
-      })
+      const draggedCard = cards?.find((c) => c.id === active.id)
+      if (draggedCard && draggedCard.status !== targetColumnId) {
+        await updateCard.mutateAsync({
+          cardId: active.id as string,
+          data: { status: targetColumnId },
+        })
+      }
     }
   }
 

@@ -1,11 +1,22 @@
 import { useState, useMemo } from 'react'
+import {
+  DndContext,
+  DragOverlay,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  useDroppable,
+  useDraggable,
+  type DragEndEvent,
+  type DragStartEvent,
+} from '@dnd-kit/core'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { ChevronLeft, ChevronRight, Share2, Filter, TrendingUp, CheckCircle2, Calendar, Plus, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Share2, Filter, TrendingUp, CheckCircle2, Calendar, Plus, X, GripVertical } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useImpersonation } from '@/contexts/ImpersonationContext'
-import { useContentCards, useCreateCard } from '@/hooks/useContentCards'
+import { useContentCards, useCreateCard, useUpdateCard } from '@/hooks/useContentCards'
 import { cn } from '@/lib/utils'
 import type { Database } from '@/integrations/supabase/types'
 
@@ -171,20 +182,84 @@ function isSameDay(d1: Date, d2: Date): boolean {
   )
 }
 
-function CardPill({ card }: { card: ContentCard }) {
+function DraggableCardPill({ card }: { card: ContentCard }) {
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id: card.id })
   const channelClass = card.channel
     ? (CHANNEL_COLORS[card.channel] ?? CHANNEL_COLORS['Outro'])
     : CHANNEL_COLORS['Outro']
 
+  const style = transform
+    ? { transform: `translate(${transform.x}px, ${transform.y}px)`, opacity: isDragging ? 0.4 : 1 }
+    : undefined
+
   return (
     <div
+      ref={setNodeRef}
+      style={style}
       className={cn(
-        'text-xs px-1.5 py-0.5 border truncate',
+        'text-xs px-1.5 py-0.5 border truncate cursor-grab active:cursor-grabbing flex items-center gap-1',
         channelClass
       )}
       title={card.title}
+      {...attributes}
+      {...listeners}
     >
+      <GripVertical className="w-2.5 h-2.5 flex-shrink-0 opacity-40" />
       {card.title}
+    </div>
+  )
+}
+
+function DroppableDay({ day, isToday, dayCards, clientId, onQuickAdd }: {
+  day: Date
+  isToday: boolean
+  dayCards: ContentCard[]
+  clientId: string | undefined
+  onQuickAdd: (day: Date) => void
+}) {
+  const dateStr = `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}`
+  const { setNodeRef, isOver } = useDroppable({ id: `day-${dateStr}` })
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={cn(
+        'bg-empire-card min-h-24 p-1.5 flex flex-col gap-1 group/day transition-colors',
+        isToday && 'bg-empire-gold/5',
+        isOver && 'bg-empire-gold/10 border border-empire-gold/30'
+      )}
+    >
+      <div className="flex items-center justify-between">
+        <span
+          className={cn(
+            'text-xs font-medium w-6 h-6 flex items-center justify-center flex-shrink-0',
+            isToday
+              ? 'bg-empire-gold text-empire-bg'
+              : 'text-empire-text/50'
+          )}
+        >
+          {day.getDate()}
+        </span>
+        {clientId && (
+          <button
+            onClick={() => onQuickAdd(day)}
+            className="opacity-0 group-hover/day:opacity-100 transition-opacity text-empire-text/30 hover:text-empire-gold"
+            title="Adicionar conteúdo neste dia"
+          >
+            <Plus className="w-3 h-3" />
+          </button>
+        )}
+      </div>
+      <div className="space-y-0.5">
+        {dayCards.slice(0, 3).map((card) => (
+          <DraggableCardPill key={card.id} card={card} />
+        ))}
+        {dayCards.length > 3 && (
+          <p className="text-empire-text/40 text-xs">
+            +{dayCards.length - 3} mais
+          </p>
+        )}
+      </div>
     </div>
   )
 }
@@ -197,6 +272,36 @@ export default function DistributionMapPage() {
   const clientId = effectiveProfile?.id ?? user?.id
 
   const { data: cards, isLoading } = useContentCards(clientId)
+  const updateCard = useUpdateCard()
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
+  )
+  const [dragActiveId, setDragActiveId] = useState<string | null>(null)
+
+  function handleDragStart(event: DragStartEvent) {
+    setDragActiveId(event.active.id as string)
+  }
+
+  async function handleDragEnd(event: DragEndEvent) {
+    setDragActiveId(null)
+    const { active, over } = event
+    if (!over) return
+
+    const overId = over.id as string
+    if (!overId.startsWith('day-')) return
+
+    const newDate = overId.replace('day-', '')
+    const draggedCard = cards?.find((c) => c.id === active.id)
+    if (draggedCard && draggedCard.publish_date !== newDate) {
+      await updateCard.mutateAsync({
+        cardId: active.id as string,
+        data: { publish_date: newDate },
+      })
+    }
+  }
+
+  const dragActiveCard = cards?.find((c) => c.id === dragActiveId) ?? null
 
   const today = new Date()
   const [viewYear, setViewYear] = useState(today.getFullYear())
@@ -449,73 +554,56 @@ export default function DistributionMapPage() {
           ))}
         </div>
       ) : (
-        <div className="bg-empire-card border border-empire-border overflow-hidden">
-          {/* Day headers */}
-          <div className="grid grid-cols-7 border-b border-empire-border">
-            {DAY_NAMES.map((day) => (
-              <div
-                key={day}
-                className="px-2 py-2 text-center text-xs text-empire-text/50 font-medium"
-              >
-                {day}
-              </div>
-            ))}
-          </div>
-
-          {/* Days */}
-          <div className="grid grid-cols-7 gap-px bg-empire-border">
-            {calendarDays.map((day, i) => {
-              if (!day) {
-                return <div key={i} className="bg-empire-surface min-h-24 p-1" />
-              }
-
-              const dayCards = getCardsForDay(day)
-              const isToday = isSameDay(day, today)
-
-              return (
+        <DndContext
+          sensors={sensors}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+        >
+          <div className="bg-empire-card border border-empire-border overflow-hidden">
+            {/* Day headers */}
+            <div className="grid grid-cols-7 border-b border-empire-border">
+              {DAY_NAMES.map((day) => (
                 <div
-                  key={i}
-                  className={cn(
-                    'bg-empire-card min-h-24 p-1.5 flex flex-col gap-1 group/day',
-                    isToday && 'bg-empire-gold/5'
-                  )}
+                  key={day}
+                  className="px-2 py-2 text-center text-xs text-empire-text/50 font-medium"
                 >
-                  <div className="flex items-center justify-between">
-                    <span
-                      className={cn(
-                        'text-xs font-medium w-6 h-6 flex items-center justify-center flex-shrink-0',
-                        isToday
-                          ? 'bg-empire-gold text-empire-bg'
-                          : 'text-empire-text/50'
-                      )}
-                    >
-                      {day.getDate()}
-                    </span>
-                    {clientId && (
-                      <button
-                        onClick={() => setQuickAddDate(day)}
-                        className="opacity-0 group-hover/day:opacity-100 transition-opacity text-empire-text/30 hover:text-empire-gold"
-                        title="Adicionar conteúdo neste dia"
-                      >
-                        <Plus className="w-3 h-3" />
-                      </button>
-                    )}
-                  </div>
-                  <div className="space-y-0.5">
-                    {dayCards.slice(0, 3).map((card) => (
-                      <CardPill key={card.id} card={card} />
-                    ))}
-                    {dayCards.length > 3 && (
-                      <p className="text-empire-text/40 text-xs">
-                        +{dayCards.length - 3} mais
-                      </p>
-                    )}
-                  </div>
+                  {day}
                 </div>
-              )
-            })}
+              ))}
+            </div>
+
+            {/* Days */}
+            <div className="grid grid-cols-7 gap-px bg-empire-border">
+              {calendarDays.map((day, i) => {
+                if (!day) {
+                  return <div key={i} className="bg-empire-surface min-h-24 p-1" />
+                }
+
+                const dayCards = getCardsForDay(day)
+                const isToday = isSameDay(day, today)
+
+                return (
+                  <DroppableDay
+                    key={i}
+                    day={day}
+                    isToday={isToday}
+                    dayCards={dayCards}
+                    clientId={clientId}
+                    onQuickAdd={setQuickAddDate}
+                  />
+                )
+              })}
+            </div>
           </div>
-        </div>
+
+          <DragOverlay>
+            {dragActiveCard && (
+              <div className="bg-empire-bg border border-empire-gold/40 px-2 py-1 shadow-xl text-xs text-empire-text opacity-90">
+                {dragActiveCard.title}
+              </div>
+            )}
+          </DragOverlay>
+        </DndContext>
       )}
 
       {/* Quick Add Modal */}
