@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { supabase } from '@/integrations/supabase/client'
 import type { Database } from '@/integrations/supabase/types'
 
@@ -54,6 +55,9 @@ export function useSaveDiagnostic(clientId: string | undefined) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['diagnostic', clientId] })
     },
+    onError: () => {
+      toast.error('Erro ao salvar diagnóstico.')
+    },
   })
 }
 
@@ -89,7 +93,11 @@ export function useSubmitDiagnostic(clientId: string | undefined) {
       }
     },
     onSuccess: () => {
+      toast.success('Diagnóstico enviado com sucesso!')
       queryClient.invalidateQueries({ queryKey: ['diagnostic', clientId] })
+    },
+    onError: () => {
+      toast.error('Erro ao enviar diagnóstico.')
     },
   })
 }

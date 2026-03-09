@@ -33,6 +33,16 @@ export interface RiskMapData {
   highlights?: (Highlight | string)[]
 }
 
+export function getRiskMapNavItems(data: RiskMapData) {
+  const items = []
+  if (data.summary) items.push({ id: 'rm-summary', label: 'Sumário' })
+  if (data.risks?.length) items.push({ id: 'rm-risks', label: 'Riscos' })
+  if (data.opportunities?.length) items.push({ id: 'rm-opportunities', label: 'Oportunidades' })
+  if (data.recommendations?.length) items.push({ id: 'rm-recommendations', label: 'Recomendações' })
+  if (data.highlights?.length) items.push({ id: 'rm-highlights', label: 'Destaques' })
+  return items
+}
+
 const SEVERITY_CONFIG: Record<Risk['severity'], { label: string; cardClass: string; badgeClass: string }> = {
   high: {
     label: 'Alto',
@@ -65,17 +75,15 @@ export function RiskMapView({ data }: RiskMapViewProps) {
 
   return (
     <div className="space-y-8">
-      {/* Summary */}
       {summary && (
-        <div className="bg-empire-card border border-empire-border p-6">
+        <div id="rm-summary" className="bg-empire-card border border-empire-border p-6 scroll-mt-8">
           <h2 className="font-display text-xl font-semibold text-empire-text mb-3">Sumário Executivo</h2>
           <p className="text-empire-text/70 leading-relaxed">{summary}</p>
         </div>
       )}
 
-      {/* Risks */}
       {risks && risks.length > 0 && (
-        <div>
+        <div id="rm-risks" className="scroll-mt-8">
           <div className="flex items-center gap-2 mb-4">
             <AlertTriangle className="w-5 h-5 text-red-400" />
             <h2 className="font-display text-xl font-semibold text-empire-text">Riscos Identificados</h2>
@@ -99,9 +107,8 @@ export function RiskMapView({ data }: RiskMapViewProps) {
         </div>
       )}
 
-      {/* Opportunities */}
       {opportunities && opportunities.length > 0 && (
-        <div>
+        <div id="rm-opportunities" className="scroll-mt-8">
           <div className="flex items-center gap-2 mb-4">
             <TrendingUp className="w-5 h-5 text-emerald-400" />
             <h2 className="font-display text-xl font-semibold text-empire-text">Oportunidades</h2>
@@ -124,9 +131,8 @@ export function RiskMapView({ data }: RiskMapViewProps) {
         </div>
       )}
 
-      {/* Recommendations */}
       {recommendations && recommendations.length > 0 && (
-        <div>
+        <div id="rm-recommendations" className="scroll-mt-8">
           <div className="flex items-center gap-2 mb-4">
             <Lightbulb className="w-5 h-5 text-empire-gold" />
             <h2 className="font-display text-xl font-semibold text-empire-text">Recomendações</h2>
@@ -142,9 +148,8 @@ export function RiskMapView({ data }: RiskMapViewProps) {
         </div>
       )}
 
-      {/* Highlights */}
       {highlights && highlights.length > 0 && (
-        <div>
+        <div id="rm-highlights" className="scroll-mt-8">
           <div className="flex items-center gap-2 mb-4">
             <Star className="w-5 h-5 text-empire-gold" />
             <h2 className="font-display text-xl font-semibold text-empire-text">Destaques</h2>

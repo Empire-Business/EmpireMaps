@@ -1,4 +1,5 @@
 import { NavLink } from 'react-router-dom'
+import { X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/contexts/AuthContext'
 import {
@@ -34,7 +35,12 @@ const clientLinks = [
   { to: '/client/banco-formatos', label: 'Banco de Formatos', icon: Library },
 ]
 
-export function Sidebar() {
+interface SidebarProps {
+  open: boolean
+  onClose: () => void
+}
+
+export function Sidebar({ open, onClose }: SidebarProps) {
   const { profile } = useAuth()
 
   const links = profile?.role === 'admin'
@@ -44,21 +50,41 @@ export function Sidebar() {
       : clientLinks
 
   return (
-    <aside className="w-64 min-h-screen bg-empire-surface border-r border-empire-border flex flex-col">
+    <aside
+      className={cn(
+        // Desktop: always visible, static
+        'lg:relative lg:translate-x-0 lg:flex lg:flex-col',
+        'w-64 min-h-screen bg-empire-surface border-r border-empire-border flex flex-col',
+        // Mobile: fixed overlay, slides in/out
+        'fixed inset-y-0 left-0 z-30 transition-transform duration-200',
+        open ? 'translate-x-0' : '-translate-x-full',
+        'lg:transition-none'
+      )}
+    >
       {/* Logo */}
-      <div className="px-6 py-6 border-b border-empire-border">
-        <h1 className="font-display text-2xl font-semibold text-gold-gradient">Empire Maps</h1>
-        <p className="text-empire-text/40 text-xs tracking-widest uppercase mt-0.5">
-          {profile?.role === 'admin' ? 'Administrador' : profile?.role === 'consultant' ? 'Consultor' : 'Cliente'}
-        </p>
+      <div className="px-6 py-6 border-b border-empire-border flex items-center justify-between">
+        <div>
+          <h1 className="font-display text-2xl font-semibold text-gold-gradient">Empire Maps</h1>
+          <p className="text-empire-text/40 text-xs tracking-widest uppercase mt-0.5">
+            {profile?.role === 'admin' ? 'Administrador' : profile?.role === 'consultant' ? 'Consultor' : 'Cliente'}
+          </p>
+        </div>
+        {/* Close button — mobile only */}
+        <button
+          onClick={onClose}
+          className="lg:hidden text-empire-text/40 hover:text-empire-text transition-colors"
+        >
+          <X className="w-5 h-5" />
+        </button>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-3 py-4 space-y-1">
+      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
         {links.map(({ to, label, icon: Icon }) => (
           <NavLink
             key={to}
             to={to}
+            onClick={onClose}
             className={({ isActive }) =>
               cn(
                 'flex items-center gap-3 px-3 py-2.5 text-sm transition-colors',

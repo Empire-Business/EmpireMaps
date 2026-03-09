@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { Search, Library, X } from 'lucide-react'
+import { Search, Library, X, ExternalLink } from 'lucide-react'
 import { useContentFormats } from '@/hooks/useContentFormats'
 import { cn } from '@/lib/utils'
 import type { Database } from '@/integrations/supabase/types'
@@ -98,6 +98,26 @@ function FormatDrawer({ format, onClose }: FormatDrawerProps) {
                   <span key={tag} className="text-xs bg-empire-card border border-empire-border text-empire-text/50 px-2 py-0.5">
                     #{tag}
                   </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {Array.isArray(format.examples) && format.examples.length > 0 && (
+            <div>
+              <h3 className="text-xs text-empire-text/50 uppercase tracking-wider mb-3">Exemplos e Referências</h3>
+              <div className="space-y-2">
+                {(format.examples as { url: string; label: string }[]).map((ex, i) => (
+                  <a
+                    key={i}
+                    href={ex.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 text-sm text-empire-gold/80 hover:text-empire-gold transition-colors"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5 flex-shrink-0" />
+                    {ex.label || ex.url}
+                  </a>
                 ))}
               </div>
             </div>

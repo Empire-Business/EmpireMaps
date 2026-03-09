@@ -27,6 +27,7 @@ const formatSchema = z.object({
   description: z.string().optional(),
   how_to: z.string().optional(),
   tips: z.array(z.object({ value: z.string() })),
+  examples: z.array(z.object({ url: z.string(), label: z.string() })),
   tags: z.string().optional(),
   status: z.enum(['active', 'archived'] as const),
 })
@@ -43,6 +44,11 @@ function FormatModal({ format, onClose }: FormatModalProps) {
   const [error, setError] = useState<string | null>(null)
 
   const defaultTips = format?.tips?.map((t) => ({ value: t })) ?? [{ value: '' }]
+  const rawExamples = format?.examples
+  const defaultExamples: { url: string; label: string }[] =
+    Array.isArray(rawExamples)
+      ? (rawExamples as { url: string; label: string }[]).filter((e) => e?.url)
+      : [{ url: '', label: '' }]
 
   const { register, handleSubmit, control, watch, setValue, formState: { errors, isSubmitting } } =
     useForm<FormatFormData>({
@@ -53,6 +59,7 @@ function FormatModal({ format, onClose }: FormatModalProps) {
         description: format?.description ?? '',
         how_to: format?.how_to ?? '',
         tips: defaultTips,
+        examples: defaultExamples.length ? defaultExamples : [{ url: '', label: '' }],
         tags: format?.tags?.join(', ') ?? '',
         status: format?.status ?? 'active',
       },
@@ -61,6 +68,11 @@ function FormatModal({ format, onClose }: FormatModalProps) {
   const { fields: tipFields, append: appendTip, remove: removeTip } = useFieldArray({
     control,
     name: 'tips',
+  })
+
+  const { fields: exampleFields, append: appendExample, remove: removeExample } = useFieldArray({
+    control,
+    name: 'examples',
   })
 
   const selectedPlatforms = watch('platforms')
@@ -79,12 +91,14 @@ function FormatModal({ format, onClose }: FormatModalProps) {
     try {
       const tags = data.tags ? data.tags.split(',').map((t) => t.trim()).filter(Boolean) : []
       const tips = data.tips.map((t) => t.value).filter(Boolean)
+      const examples = data.examples.filter((e) => e.url.trim())
       const payload = {
         name: data.name,
         platforms: data.platforms,
         description: data.description ?? null,
         how_to: data.how_to ?? null,
         tips,
+        examples: examples.length ? examples : null,
         tags,
         status: data.status,
       }
@@ -196,6 +210,41 @@ function FormatModal({ format, onClose }: FormatModalProps) {
               >
                 <Plus className="w-3.5 h-3.5" />
                 Adicionar dica
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm text-empire-text/70 mb-2">Exemplos e Referências</label>
+            <div className="space-y-2">
+              {exampleFields.map((field, index) => (
+                <div key={field.id} className="flex gap-2">
+                  <input
+                    {...register(`examples.${index}.label`)}
+                    className="w-32 bg-empire-surface border border-empire-border text-empire-text px-3 py-2 text-sm focus:outline-none focus:border-empire-gold/50 transition-colors"
+                    placeholder="Nome"
+                  />
+                  <input
+                    {...register(`examples.${index}.url`)}
+                    className="flex-1 bg-empire-surface border border-empire-border text-empire-text px-3 py-2 text-sm focus:outline-none focus:border-empire-gold/50 transition-colors"
+                    placeholder="https://..."
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeExample(index)}
+                    className="text-empire-text/30 hover:text-red-400 transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => appendExample({ url: '', label: '' })}
+                className="text-xs text-empire-gold/70 hover:text-empire-gold transition-colors flex items-center gap-1"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                Adicionar exemplo
               </button>
             </div>
           </div>

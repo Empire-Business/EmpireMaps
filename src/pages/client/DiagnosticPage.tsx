@@ -1,30 +1,22 @@
 import { useEffect, useCallback } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Lock, Send } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useImpersonation } from '@/contexts/ImpersonationContext'
 import { useDiagnostic, useSaveDiagnostic, useSubmitDiagnostic } from '@/hooks/useDiagnostic'
+import { DdiSelector } from '@/components/ui/DdiSelector'
 import { formatDateTime } from '@/lib/utils'
 import type { Database } from '@/integrations/supabase/types'
 
 type Json = Database['public']['Tables']['client_diagnostics']['Row']['social_links']
 
-const DDI_OPTIONS = [
-  { code: '+55', label: 'Brasil (+55)' },
-  { code: '+1', label: 'EUA (+1)' },
-  { code: '+351', label: 'Portugal (+351)' },
-  { code: '+54', label: 'Argentina (+54)' },
-  { code: '+44', label: 'Reino Unido (+44)' },
-  { code: '+34', label: 'Espanha (+34)' },
-]
-
 const schema = z.object({
   full_name: z.string().min(2, 'Nome obrigatório'),
   email: z.string().email('E-mail inválido'),
   whatsapp_ddi: z.string().min(1, 'DDI obrigatório'),
-  whatsapp_ddd: z.string().regex(/^\d{2}$/, 'DDD deve ter 2 dígitos'),
+  whatsapp_ddd: z.string().regex(/^\d{2,3}$/, 'DDD inválido'),
   whatsapp_num: z.string().min(8, 'Número inválido').max(9, 'Número inválido'),
   instagram: z.string().optional(),
   linkedin: z.string().optional(),
@@ -39,7 +31,11 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>
 
-const SOCIAL_FIELDS: { key: keyof Pick<FormData, 'instagram' | 'linkedin' | 'youtube' | 'tiktok' | 'twitter' | 'facebook' | 'pinterest' | 'outros'>; label: string; placeholder: string }[] = [
+const SOCIAL_FIELDS: {
+  key: keyof Pick<FormData, 'instagram' | 'linkedin' | 'youtube' | 'tiktok' | 'twitter' | 'facebook' | 'pinterest' | 'outros'>
+  label: string
+  placeholder: string
+}[] = [
   { key: 'instagram', label: 'Instagram', placeholder: '@usuario' },
   { key: 'linkedin', label: 'LinkedIn', placeholder: 'linkedin.com/in/usuario' },
   { key: 'youtube', label: 'YouTube', placeholder: 'youtube.com/@canal' },
@@ -72,7 +68,7 @@ export default function DiagnosticPage() {
 
   const socialLinks = parseSocialLinks(diagnostic?.social_links ?? null)
 
-  const { register, handleSubmit, reset, watch, formState: { errors, isSubmitting } } =
+  const { register, handleSubmit, reset, watch, control, formState: { errors, isSubmitting } } =
     useForm<FormData>({
       resolver: zodResolver(schema),
       defaultValues: {
@@ -93,7 +89,6 @@ export default function DiagnosticPage() {
       },
     })
 
-  // Populate form when diagnostic loads
   useEffect(() => {
     if (diagnostic) {
       reset({
@@ -115,7 +110,6 @@ export default function DiagnosticPage() {
     }
   }, [diagnostic, reset])
 
-  // Auto-save with 2s debounce
   const values = watch()
   const debouncedSave = useCallback(
     debounce(async (data: FormData) => {
@@ -165,10 +159,12 @@ export default function DiagnosticPage() {
 
   if (isLoading) {
     return (
-      <div className="p-8 space-y-4">
-        <div className="h-8 w-48 bg-empire-card animate-pulse rounded" />
+      <div className="p-8 space-y-4 max-w-3xl">
+        <div className="h-8 w-48 bg-empire-card animate-pulse" />
+        <div className="h-4 w-72 bg-empire-card animate-pulse" />
+        <div className="h-px bg-empire-border mt-6" />
         {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="h-12 bg-empire-card animate-pulse rounded" />
+          <div key={i} className="h-12 bg-empire-card animate-pulse" />
         ))}
       </div>
     )
@@ -208,7 +204,7 @@ export default function DiagnosticPage() {
               <input
                 {...register('full_name')}
                 readOnly={readOnly}
-                className="w-full bg-empire-surface border border-empire-border text-empire-text px-4 py-2.5 text-sm focus:outline-none focus:border-empire-gold/50 transition-colors disabled:opacity-60 read-only:opacity-70 read-only:cursor-default"
+                className="w-full bg-empire-surface border border-empire-border text-empire-text px-4 py-2.5 text-sm focus:outline-none focus:border-empire-gold/50 transition-colors read-only:opacity-70 read-only:cursor-default"
                 placeholder="Seu nome completo"
               />
               {errors.full_name && <p className="text-red-400 text-xs mt-1">{errors.full_name.message}</p>}
@@ -231,21 +227,23 @@ export default function DiagnosticPage() {
           <div>
             <label className="block text-sm text-empire-text/70 mb-1.5">WhatsApp *</label>
             <div className="flex gap-2">
-              <select
-                {...register('whatsapp_ddi')}
-                disabled={readOnly}
-                className="bg-empire-surface border border-empire-border text-empire-text px-3 py-2.5 text-sm focus:outline-none focus:border-empire-gold/50 transition-colors disabled:opacity-70"
-              >
-                {DDI_OPTIONS.map((d) => (
-                  <option key={d.code} value={d.code}>{d.label}</option>
-                ))}
-              </select>
+              <Controller
+                name="whatsapp_ddi"
+                control={control}
+                render={({ field }) => (
+                  <DdiSelector
+                    value={field.value}
+                    onChange={field.onChange}
+                    disabled={readOnly}
+                  />
+                )}
+              />
               <input
                 {...register('whatsapp_ddd')}
                 readOnly={readOnly}
                 className="w-20 bg-empire-surface border border-empire-border text-empire-text px-4 py-2.5 text-sm focus:outline-none focus:border-empire-gold/50 transition-colors read-only:opacity-70 read-only:cursor-default"
                 placeholder="DDD"
-                maxLength={2}
+                maxLength={3}
               />
               <input
                 {...register('whatsapp_num')}
@@ -291,7 +289,7 @@ export default function DiagnosticPage() {
 
           <div>
             <label className="block text-sm text-empire-text/70 mb-1.5">
-              Quais são seus objetivos com a consultoria?
+              O que você quer alcançar com sua presença digital?
             </label>
             <textarea
               {...register('objectives')}
@@ -351,23 +349,15 @@ export default function DiagnosticPage() {
   )
 }
 
-// Simple debounce utility
 function debounce<T extends (...args: Parameters<T>) => ReturnType<T>>(
   fn: T,
   delay: number
 ): T & { cancel: () => void } {
   let timer: ReturnType<typeof setTimeout> | null = null
-
   const debounced = ((...args: Parameters<T>) => {
     if (timer) clearTimeout(timer)
-    timer = setTimeout(() => {
-      fn(...args)
-    }, delay)
+    timer = setTimeout(() => fn(...args), delay)
   }) as T & { cancel: () => void }
-
-  debounced.cancel = () => {
-    if (timer) clearTimeout(timer)
-  }
-
+  debounced.cancel = () => { if (timer) clearTimeout(timer) }
   return debounced
 }

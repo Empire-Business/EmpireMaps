@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import {
   DndContext,
   DragOverlay,
@@ -17,16 +17,22 @@ import { CSS } from '@dnd-kit/utilities'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Plus, X, GripVertical, Calendar, Link2, Sparkles, Loader2 } from 'lucide-react'
+import {
+  Plus, X, GripVertical, Calendar, Link2, Sparkles, Loader2,
+  Trash2, Paperclip, FileIcon, BarChart2, AlertTriangle, Upload,
+} from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useImpersonation } from '@/contexts/ImpersonationContext'
-import { useContentCards, useCreateCard, useUpdateCard } from '@/hooks/useContentCards'
+import { useContentCards, useCreateCard, useUpdateCard, useDeleteCard } from '@/hooks/useContentCards'
+import { useCardAttachments, useUploadAttachment, useDeleteAttachment } from '@/hooks/useCardAttachments'
+import { ProductionMapUploader } from '@/components/deliverables/ProductionMapUploader'
 import { supabase } from '@/integrations/supabase/client'
 import { cn, formatDate } from '@/lib/utils'
 import type { Database } from '@/integrations/supabase/types'
 
 type ContentCard = Database['public']['Tables']['content_cards']['Row']
 type CardStatus = ContentCard['status']
+type AttachmentRow = Database['public']['Tables']['card_attachments']['Row']
 type ContentCardInsert = Omit<Database['public']['Tables']['content_cards']['Insert'], 'client_id' | 'created_by'>
 
 const COLUMNS: { id: CardStatus; label: string; color: string }[] = [
@@ -56,7 +62,7 @@ const CHANNEL_COLORS: Record<string, string> = {
   Outro: 'bg-empire-surface text-empire-text/50 border-empire-border',
 }
 
-// ---- Card Form ----
+// ---- Card Form Schema ----
 const cardSchema = z.object({
   title: z.string().min(1, 'Título obrigatório'),
   description: z.string().optional(),
@@ -68,6 +74,9 @@ const cardSchema = z.object({
   labels: z.string().optional(),
   publish_url: z.string().optional(),
   internal_notes: z.string().optional(),
+  metrics_reach: z.string().optional(),
+  metrics_impressions: z.string().optional(),
+  metrics_engagement: z.string().optional(),
 })
 type CardFormData = z.infer<typeof cardSchema>
 
@@ -83,20 +92,115 @@ interface ReuseResult {
   key_insight: string
 }
 
+// ---- Attachments Section ----
+function CardAttachmentsSection({ cardId }: { cardId: string }) {
+  const { data: attachments, isLoading } = useCardAttachments(cardId)
+  const uploadMutation = useUploadAttachment(cardId)
+  const deleteMutation = useDeleteAttachment(cardId)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  function formatBytes(bytes: number | null): string {
+    if (!bytes) return ''
+    if (bytes < 1024) return `${bytes} B`
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Paperclip className="w-4 h-4 text-empire-gold" />
+          <h3 className="text-sm font-medium text-empire-text/70">Anexos</h3>
+          {attachments && attachments.length > 0 && (
+            <span className="text-xs text-empire-text/40">({attachments.length})</span>
+          )}
+        </div>
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={uploadMutation.isPending}
+          className="flex items-center gap-1 text-xs text-empire-gold/70 hover:text-empire-gold transition-colors disabled:opacity-50"
+        >
+          {uploadMutation.isPending ? (
+            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+          ) : (
+            <Upload className="w-3.5 h-3.5" />
+          )}
+          Anexar arquivo
+        </button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0]
+            if (file) uploadMutation.mutate(file)
+            if (fileInputRef.current) fileInputRef.current.value = ''
+          }}
+        />
+      </div>
+
+      {isLoading && (
+        <div className="text-xs text-empire-text/40">Carregando anexos...</div>
+      )}
+
+      {attachments && attachments.length > 0 && (
+        <ul className="space-y-1.5">
+          {attachments.map((att: AttachmentRow) => (
+            <li key={att.id} className="flex items-center gap-2 bg-empire-surface border border-empire-border px-3 py-2">
+              <FileIcon className="w-3.5 h-3.5 text-empire-text/30 flex-shrink-0" />
+              <a
+                href={att.file_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 min-w-0 text-xs text-empire-text/70 hover:text-empire-gold transition-colors truncate"
+              >
+                {att.file_name}
+              </a>
+              {att.file_size && (
+                <span className="text-xs text-empire-text/30 flex-shrink-0">{formatBytes(att.file_size)}</span>
+              )}
+              <button
+                type="button"
+                onClick={() => deleteMutation.mutate(att)}
+                disabled={deleteMutation.isPending}
+                className="text-empire-text/20 hover:text-red-400 transition-colors flex-shrink-0"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {!isLoading && (!attachments || attachments.length === 0) && (
+        <p className="text-xs text-empire-text/30">Nenhum anexo ainda.</p>
+      )}
+    </div>
+  )
+}
+
+// ---- Card Modal ----
 interface CardModalProps {
   card?: ContentCard
   defaultStatus?: CardStatus
   clientId: string
   canSeeInternalNotes: boolean
+  canDelete: boolean
   onClose: () => void
 }
 
-function CardModal({ card, defaultStatus, clientId, canSeeInternalNotes, onClose }: CardModalProps) {
+function CardModal({ card, defaultStatus, clientId, canSeeInternalNotes, canDelete, onClose }: CardModalProps) {
   const createCard = useCreateCard(clientId)
   const updateCard = useUpdateCard()
+  const deleteCard = useDeleteCard()
   const [error, setError] = useState<string | null>(null)
+  const [confirmDelete, setConfirmDelete] = useState(false)
   const [reuseLoading, setReuseLoading] = useState(false)
   const [reuseResult, setReuseResult] = useState<ReuseResult | null>(null)
+
+  const existingMetrics = card?.metrics as Record<string, number> | null | undefined
 
   async function handleSuggestReuse() {
     if (!card) return
@@ -115,7 +219,17 @@ function CardModal({ card, defaultStatus, clientId, canSeeInternalNotes, onClose
     }
   }
 
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<CardFormData>({
+  async function handleDelete() {
+    if (!card) return
+    try {
+      await deleteCard.mutateAsync(card.id)
+      onClose()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao excluir card')
+    }
+  }
+
+  const { register, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm<CardFormData>({
     resolver: zodResolver(cardSchema),
     defaultValues: {
       title: card?.title ?? '',
@@ -128,14 +242,31 @@ function CardModal({ card, defaultStatus, clientId, canSeeInternalNotes, onClose
       labels: card?.labels?.join(', ') ?? '',
       publish_url: card?.publish_url ?? '',
       internal_notes: card?.internal_notes ?? '',
+      metrics_reach: existingMetrics?.reach?.toString() ?? '',
+      metrics_impressions: existingMetrics?.impressions?.toString() ?? '',
+      metrics_engagement: existingMetrics?.engagement_rate?.toString() ?? '',
     },
   })
+
+  const currentStatus = watch('status')
 
   async function onSubmit(data: CardFormData) {
     setError(null)
     try {
       const labels = data.labels
         ? data.labels.split(',').map((l) => l.trim()).filter(Boolean)
+        : null
+
+      const metricsReach = data.metrics_reach ? parseFloat(data.metrics_reach) : null
+      const metricsImpressions = data.metrics_impressions ? parseInt(data.metrics_impressions) : null
+      const metricsEngagement = data.metrics_engagement ? parseFloat(data.metrics_engagement) : null
+      const hasMetrics = metricsReach !== null || metricsImpressions !== null || metricsEngagement !== null
+      const metrics = hasMetrics
+        ? {
+            ...(metricsReach !== null && { reach: metricsReach }),
+            ...(metricsImpressions !== null && { impressions: metricsImpressions }),
+            ...(metricsEngagement !== null && { engagement_rate: metricsEngagement }),
+          }
         : null
 
       const payload = {
@@ -149,6 +280,7 @@ function CardModal({ card, defaultStatus, clientId, canSeeInternalNotes, onClose
         labels,
         publish_url: data.publish_url || null,
         internal_notes: canSeeInternalNotes ? (data.internal_notes || null) : undefined,
+        metrics,
       }
 
       if (card) {
@@ -169,10 +301,49 @@ function CardModal({ card, defaultStatus, clientId, canSeeInternalNotes, onClose
           <h2 className="font-display text-xl font-semibold text-empire-text">
             {card ? 'Editar Card' : 'Novo Card'}
           </h2>
-          <button onClick={onClose} className="text-empire-text/40 hover:text-empire-text transition-colors">
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-3">
+            {canDelete && card && !confirmDelete && (
+              <button
+                type="button"
+                onClick={() => setConfirmDelete(true)}
+                className="text-empire-text/30 hover:text-red-400 transition-colors"
+                title="Excluir card"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            )}
+            <button onClick={onClose} className="text-empire-text/40 hover:text-empire-text transition-colors">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
+
+        {/* Delete confirmation */}
+        {confirmDelete && (
+          <div className="mb-4 bg-red-500/10 border border-red-500/20 px-4 py-3 space-y-3">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-red-400 flex-shrink-0" />
+              <p className="text-red-400 text-sm font-medium">Tem certeza que deseja excluir este card? Esta ação não pode ser desfeita.</p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setConfirmDelete(false)}
+                className="btn-secondary text-sm flex-1 justify-center"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleDelete}
+                disabled={deleteCard.isPending}
+                className="flex-1 bg-red-500/20 border border-red-500/30 text-red-400 hover:bg-red-500/30 transition-colors px-4 py-2 text-sm font-medium disabled:opacity-50"
+              >
+                {deleteCard.isPending ? 'Excluindo...' : 'Sim, excluir'}
+              </button>
+            </div>
+          </div>
+        )}
 
         {error && (
           <p className="text-red-400 text-sm bg-red-400/10 border border-red-400/20 px-4 py-3 mb-4">
@@ -291,6 +462,50 @@ function CardModal({ card, defaultStatus, clientId, canSeeInternalNotes, onClose
             </div>
           )}
 
+          {/* Metrics — visible when status is publicado */}
+          {(currentStatus === 'publicado' || (card && existingMetrics)) && (
+            <div className="border-t border-empire-border pt-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <BarChart2 className="w-4 h-4 text-empire-gold" />
+                <h3 className="text-sm font-medium text-empire-text/70">Métricas de Desempenho</h3>
+              </div>
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs text-empire-text/50 mb-1">Alcance</label>
+                  <input
+                    {...register('metrics_reach')}
+                    type="number"
+                    min="0"
+                    className="w-full bg-empire-surface border border-empire-border text-empire-text px-3 py-2 text-sm focus:outline-none focus:border-empire-gold/50 transition-colors"
+                    placeholder="0"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-empire-text/50 mb-1">Impressões</label>
+                  <input
+                    {...register('metrics_impressions')}
+                    type="number"
+                    min="0"
+                    className="w-full bg-empire-surface border border-empire-border text-empire-text px-3 py-2 text-sm focus:outline-none focus:border-empire-gold/50 transition-colors"
+                    placeholder="0"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-empire-text/50 mb-1">Engajamento %</label>
+                  <input
+                    {...register('metrics_engagement')}
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    max="100"
+                    className="w-full bg-empire-surface border border-empire-border text-empire-text px-3 py-2 text-sm focus:outline-none focus:border-empire-gold/50 transition-colors"
+                    placeholder="0.00"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="flex gap-3 pt-2">
             <button type="button" onClick={onClose} className="flex-1 btn-secondary justify-center">
               Cancelar
@@ -304,6 +519,13 @@ function CardModal({ card, defaultStatus, clientId, canSeeInternalNotes, onClose
             </button>
           </div>
         </form>
+
+        {/* Attachments — only for existing cards */}
+        {card && (
+          <div className="mt-6 pt-6 border-t border-empire-border">
+            <CardAttachmentsSection cardId={card.id} />
+          </div>
+        )}
 
         {/* Reuse suggestions — only for existing cards */}
         {card && (
@@ -518,7 +740,6 @@ export default function ProductionMapPage() {
     const { active, over } = event
     if (!over || active.id === over.id) return
 
-    // Determine target column
     const targetColumnId = COLUMNS.find((col) => col.id === over.id)?.id
     if (targetColumnId) {
       await updateCard.mutateAsync({
@@ -541,6 +762,9 @@ export default function ProductionMapPage() {
     setShowModal(true)
   }
 
+  // canDelete: admin/consultant can always delete; client can only delete their own cards
+  const canDelete = canSeeInternalNotes || editingCard?.created_by === user?.id
+
   return (
     <div className="p-8 space-y-6">
       {/* Header */}
@@ -560,6 +784,13 @@ export default function ProductionMapPage() {
           Novo Card
         </button>
       </div>
+
+      {/* Importer for admin/consultant */}
+      {clientId && (
+        <div className="max-w-xl">
+          <ProductionMapUploader clientId={clientId} />
+        </div>
+      )}
 
       {/* Kanban Board */}
       {isLoading ? (
@@ -607,6 +838,7 @@ export default function ProductionMapPage() {
           defaultStatus={defaultColumnStatus}
           clientId={clientId}
           canSeeInternalNotes={canSeeInternalNotes}
+          canDelete={!!canDelete}
           onClose={() => { setShowModal(false); setEditingCard(null) }}
         />
       )}
