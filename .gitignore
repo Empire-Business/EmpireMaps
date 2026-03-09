@@ -1,3 +1,23 @@
+# Dependencies
+node_modules
+dist
+dist-ssr
+*.local
+
+# Environment — NUNCA commitar
+.env
+.env.local
+.env.*.local
+
+# Supabase
+supabase/.branches
+supabase/.temp
+
+# Editor
+.vscode/*
+!.vscode/extensions.json
+.idea
+
 # macOS
 .DS_Store
 .AppleDouble
