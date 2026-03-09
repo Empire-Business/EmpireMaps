@@ -2,6 +2,7 @@ import { NavLink } from 'react-router-dom'
 import { X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/contexts/AuthContext'
+import { useImpersonation } from '@/contexts/ImpersonationContext'
 import {
   LayoutDashboard,
   Users,
@@ -42,10 +43,13 @@ interface SidebarProps {
 
 export function Sidebar({ open, onClose }: SidebarProps) {
   const { profile } = useAuth()
+  const { isImpersonating } = useImpersonation()
 
-  const links = profile?.role === 'admin'
+  const effectiveRole = isImpersonating ? 'client' : profile?.role
+
+  const links = effectiveRole === 'admin'
     ? adminLinks
-    : profile?.role === 'consultant'
+    : effectiveRole === 'consultant'
       ? consultantLinks
       : clientLinks
 
@@ -66,7 +70,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
         <div>
           <h1 className="font-display text-2xl font-semibold text-gold-gradient">Empire Maps</h1>
           <p className="text-empire-text/40 text-xs tracking-widest uppercase mt-0.5">
-            {profile?.role === 'admin' ? 'Administrador' : profile?.role === 'consultant' ? 'Consultor' : 'Cliente'}
+            {isImpersonating ? 'Visualizando como Cliente' : effectiveRole === 'admin' ? 'Administrador' : effectiveRole === 'consultant' ? 'Consultor' : 'Cliente'}
           </p>
         </div>
         {/* Close button — mobile only */}
