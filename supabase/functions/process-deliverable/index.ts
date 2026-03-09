@@ -180,11 +180,10 @@ serve(async (req) => {
       processedJson = { raw: rawContent }
     }
 
-    // Save processed result
+    // Save processed result — keeps status as in_progress for consultant review
     const { error: updateError } = await supabase
       .from('deliverables')
       .update({
-        status: 'ready',
         processed_json: processedJson,
       })
       .eq('id', deliverable.id)

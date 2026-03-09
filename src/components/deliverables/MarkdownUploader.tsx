@@ -1,14 +1,15 @@
 import { useRef, useState } from 'react'
-import { Upload, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react'
+import { Upload, AlertCircle, Loader2, Eye, Send } from 'lucide-react'
+import { useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/contexts/AuthContext'
-import { useUploadMarkdown } from '@/hooks/useDeliverable'
+import { useUploadMarkdown, useDeliverable, usePublishDeliverable } from '@/hooks/useDeliverable'
 import { supabase } from '@/integrations/supabase/client'
 import { cn } from '@/lib/utils'
 import type { Database } from '@/integrations/supabase/types'
 
 type DeliverableType = Database['public']['Tables']['deliverables']['Row']['type']
 
-type UploadState = 'idle' | 'uploading' | 'processing' | 'done' | 'error'
+type UploadState = 'idle' | 'uploading' | 'processing' | 'review' | 'error'
 
 interface MarkdownUploaderProps {
   clientId: string
@@ -17,9 +18,18 @@ interface MarkdownUploaderProps {
 
 const MAX_SIZE_BYTES = 5 * 1024 * 1024 // 5MB
 
+const TYPE_LABELS: Record<DeliverableType, string> = {
+  risk_map: 'Mapa de Riscos',
+  brand_book: 'Brand Book',
+  editorial_line: 'Linha Editorial',
+}
+
 export function MarkdownUploader({ clientId, type }: MarkdownUploaderProps) {
   const { profile } = useAuth()
+  const queryClient = useQueryClient()
   const uploadMutation = useUploadMarkdown(clientId, type)
+  const publishMutation = usePublishDeliverable()
+  const { data: deliverable } = useDeliverable(clientId, type)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [uploadState, setUploadState] = useState<UploadState>('idle')
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
@@ -49,7 +59,6 @@ export function MarkdownUploader({ clientId, type }: MarkdownUploaderProps) {
 
     try {
       const text = await file.text()
-      setUploadState('uploading')
       await uploadMutation.mutateAsync(text)
 
       // Invoke Edge Function to process with AI
@@ -58,17 +67,31 @@ export function MarkdownUploader({ clientId, type }: MarkdownUploaderProps) {
         body: { client_id: clientId, type },
       })
       if (fnError) {
-        // Non-fatal: file was uploaded, processing failed
         console.warn('Edge Function error:', fnError)
+        setErrorMsg('Processamento com IA falhou, mas o arquivo foi salvo. Tente novamente.')
+        setUploadState('error')
+        return
       }
 
-      setUploadState('done')
+      // Refetch deliverable to get processed_json for preview
+      await queryClient.invalidateQueries({ queryKey: ['deliverable', clientId, type] })
+      setUploadState('review')
     } catch (err) {
       setUploadState('error')
       setErrorMsg(err instanceof Error ? err.message : 'Erro ao fazer upload')
     } finally {
-      // Reset file input
       if (fileInputRef.current) fileInputRef.current.value = ''
+    }
+  }
+
+  async function handlePublish() {
+    if (!deliverable) return
+    try {
+      await publishMutation.mutateAsync(deliverable.id)
+      setUploadState('idle')
+      setFileName(null)
+    } catch {
+      // toast handled in hook
     }
   }
 
@@ -76,14 +99,24 @@ export function MarkdownUploader({ clientId, type }: MarkdownUploaderProps) {
     fileInputRef.current?.click()
   }
 
+  const isAlreadyPublished = deliverable?.status === 'published'
+
   return (
     <div className="bg-empire-card border border-empire-border p-5 space-y-3">
-      <div className="flex items-center gap-2">
-        <Upload className="w-4 h-4 text-empire-gold" />
-        <h3 className="text-sm font-medium text-empire-text">Upload de Markdown</h3>
-        <span className="text-xs bg-empire-gold/10 text-empire-gold px-2 py-0.5 border border-empire-gold/20">
-          {profile?.role === 'admin' ? 'Admin' : 'Consultor'}
-        </span>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Upload className="w-4 h-4 text-empire-gold" />
+          <h3 className="text-sm font-medium text-empire-text">Upload de Markdown</h3>
+          <span className="text-xs bg-empire-gold/10 text-empire-gold px-2 py-0.5 border border-empire-gold/20">
+            {profile?.role === 'admin' ? 'Admin' : 'Consultor'}
+          </span>
+        </div>
+
+        {isAlreadyPublished && uploadState === 'idle' && (
+          <span className="text-xs text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5">
+            Publicado
+          </span>
+        )}
       </div>
 
       <input
@@ -104,7 +137,9 @@ export function MarkdownUploader({ clientId, type }: MarkdownUploaderProps) {
         >
           <Upload className="w-6 h-6 text-empire-text/30 group-hover:text-empire-gold/60 transition-colors" />
           <div className="text-center">
-            <p className="text-empire-text/60 text-sm">Clique para selecionar um arquivo .md</p>
+            <p className="text-empire-text/60 text-sm">
+              {isAlreadyPublished ? 'Reenviar arquivo .md' : 'Clique para selecionar um arquivo .md'}
+            </p>
             <p className="text-empire-text/30 text-xs mt-0.5">Máximo 5MB</p>
           </div>
         </button>
@@ -120,27 +155,42 @@ export function MarkdownUploader({ clientId, type }: MarkdownUploaderProps) {
       {uploadState === 'processing' && (
         <div className="py-6 flex flex-col items-center gap-2">
           <Loader2 className="w-6 h-6 text-empire-gold animate-spin" />
-          <p className="text-empire-text/60 text-sm">Processando...</p>
+          <p className="text-empire-text/60 text-sm">Processando com IA...</p>
+          <p className="text-empire-text/30 text-xs">Isso pode levar alguns segundos</p>
         </div>
       )}
 
-      {uploadState === 'done' && (
-        <div className="space-y-3">
-          <div className="flex items-start gap-3 bg-emerald-500/10 border border-emerald-500/20 px-4 py-3">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
+      {uploadState === 'review' && (
+        <div className="space-y-4">
+          <div className="flex items-start gap-3 bg-blue-500/10 border border-blue-500/20 px-4 py-3">
+            <Eye className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
             <div>
-              <p className="text-emerald-400 text-sm font-medium">Arquivo recebido.</p>
-              <p className="text-emerald-400/70 text-xs mt-0.5">
-                O conteúdo está sendo processado pela IA. Aguarde alguns instantes e recarregue a página.
+              <p className="text-blue-400 text-sm font-medium">Processamento concluído.</p>
+              <p className="text-blue-400/70 text-xs mt-0.5">
+                Revise o {TYPE_LABELS[type]} nas seções abaixo e publique quando estiver pronto.
               </p>
             </div>
           </div>
-          <button
-            onClick={() => setUploadState('idle')}
-            className="text-xs text-empire-gold/70 hover:text-empire-gold transition-colors"
-          >
-            Enviar outro arquivo
-          </button>
+
+          <div className="flex gap-3">
+            <button
+              onClick={() => { setUploadState('idle'); setFileName(null) }}
+              className="flex-1 btn-secondary justify-center text-sm"
+            >
+              Reenviar arquivo
+            </button>
+            <button
+              onClick={handlePublish}
+              disabled={publishMutation.isPending}
+              className="flex-1 btn-premium justify-center text-sm disabled:opacity-50"
+            >
+              {publishMutation.isPending ? (
+                <><Loader2 className="w-4 h-4 animate-spin" /> Publicando...</>
+              ) : (
+                <><Send className="w-4 h-4" /> Publicar para o cliente</>
+              )}
+            </button>
+          </div>
         </div>
       )}
 
@@ -155,6 +205,26 @@ export function MarkdownUploader({ clientId, type }: MarkdownUploaderProps) {
             className="text-xs text-empire-gold/70 hover:text-empire-gold transition-colors"
           >
             Tentar novamente
+          </button>
+        </div>
+      )}
+
+      {/* When deliverable is in_progress and we're in idle (e.g. refreshed page) */}
+      {uploadState === 'idle' && deliverable?.status === 'in_progress' && deliverable.processed_json && (
+        <div className="space-y-3 border-t border-empire-border pt-3">
+          <p className="text-sm text-empire-text/60">
+            Existe uma versão processada aguardando publicação.
+          </p>
+          <button
+            onClick={handlePublish}
+            disabled={publishMutation.isPending}
+            className="btn-premium text-sm disabled:opacity-50"
+          >
+            {publishMutation.isPending ? (
+              <><Loader2 className="w-4 h-4 animate-spin" /> Publicando...</>
+            ) : (
+              <><Send className="w-4 h-4" /> Publicar para o cliente</>
+            )}
           </button>
         </div>
       )}

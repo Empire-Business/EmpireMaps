@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { Toaster } from 'sonner'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { ImpersonationProvider } from '@/contexts/ImpersonationContext'
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
@@ -44,6 +45,17 @@ export default function App() {
       <AuthProvider>
         <ImpersonationProvider>
           <BrowserRouter>
+            <Toaster
+              position="bottom-right"
+              toastOptions={{
+                style: {
+                  background: '#151515',
+                  border: '1px solid #1e1e1e',
+                  color: '#f5f5f0',
+                  borderRadius: '2px',
+                },
+              }}
+            />
             <Routes>
               {/* Redireciona raiz para login */}
               <Route path="/" element={<Navigate to="/login" replace />} />

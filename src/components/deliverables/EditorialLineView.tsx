@@ -1,4 +1,8 @@
-import { Target, Layers, Clock, Radio } from 'lucide-react'
+import { Target, Layers, Clock, Radio, FileText, ExternalLink } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import type { Database } from '@/integrations/supabase/types'
+
+type ContentFormatRow = Database['public']['Tables']['content_formats']['Row']
 
 interface Pillar {
   name: string
@@ -31,18 +35,55 @@ export interface EditorialLineData {
   sections?: Section[]
 }
 
-interface EditorialLineViewProps {
-  data: EditorialLineData
+export function getEditorialLineNavItems(data: EditorialLineData) {
+  const items = []
+  if (data.objective) items.push({ id: 'el-objective', label: 'Objetivo' })
+  if (data.pillars?.length) items.push({ id: 'el-pillars', label: 'Pilares' })
+  if (data.cadence) items.push({ id: 'el-cadence', label: 'Cadência' })
+  if (data.channels?.length) items.push({ id: 'el-channels', label: 'Canais' })
+  if (data.content_formats?.length) items.push({ id: 'el-formats', label: 'Formatos' })
+  if (data.sections?.length) items.push({ id: 'el-sections', label: 'Seções' })
+  return items
 }
 
-export function EditorialLineView({ data }: EditorialLineViewProps) {
+interface EditorialLineViewProps {
+  data: EditorialLineData
+  formatBank?: ContentFormatRow[]
+}
+
+function FormatTag({ name, formatBank }: { name: string; formatBank?: ContentFormatRow[] }) {
+  const match = formatBank?.find(
+    (f) => f.name.toLowerCase() === name.toLowerCase() && f.status === 'active'
+  )
+
+  if (match) {
+    return (
+      <Link
+        to="/client/banco-formatos"
+        state={{ highlight: match.id }}
+        className="inline-flex items-center gap-1 text-xs bg-empire-gold/15 text-empire-gold px-2 py-0.5 border border-empire-gold/30 hover:bg-empire-gold/25 transition-colors"
+        title={`Ver "${match.name}" no Banco de Formatos`}
+      >
+        {name}
+        <ExternalLink className="w-2.5 h-2.5 opacity-70" />
+      </Link>
+    )
+  }
+
+  return (
+    <span className="text-xs bg-empire-gold/10 text-empire-gold px-2 py-0.5 border border-empire-gold/20">
+      {name}
+    </span>
+  )
+}
+
+export function EditorialLineView({ data, formatBank }: EditorialLineViewProps) {
   const { objective, pillars, cadence, channels, content_formats, sections } = data
 
   return (
     <div className="space-y-8">
-      {/* Objective */}
       {objective && (
-        <div className="bg-empire-card border border-empire-border p-6">
+        <div id="el-objective" className="bg-empire-card border border-empire-border p-6 scroll-mt-8">
           <div className="flex items-center gap-2 mb-3">
             <Target className="w-5 h-5 text-empire-gold" />
             <h2 className="font-display text-xl font-semibold text-empire-text">Objetivo Editorial</h2>
@@ -51,9 +92,8 @@ export function EditorialLineView({ data }: EditorialLineViewProps) {
         </div>
       )}
 
-      {/* Pillars */}
       {pillars && pillars.length > 0 && (
-        <div>
+        <div id="el-pillars" className="scroll-mt-8">
           <div className="flex items-center gap-2 mb-4">
             <Layers className="w-5 h-5 text-empire-gold" />
             <h2 className="font-display text-xl font-semibold text-empire-text">Pilares de Conteúdo</h2>
@@ -69,12 +109,7 @@ export function EditorialLineView({ data }: EditorialLineViewProps) {
                 {pillar.formats && pillar.formats.length > 0 && (
                   <div className="flex flex-wrap gap-1.5">
                     {pillar.formats.map((f, fi) => (
-                      <span
-                        key={fi}
-                        className="text-xs bg-empire-gold/10 text-empire-gold px-2 py-0.5 border border-empire-gold/20"
-                      >
-                        {f}
-                      </span>
+                      <FormatTag key={fi} name={f} formatBank={formatBank} />
                     ))}
                   </div>
                 )}
@@ -84,9 +119,8 @@ export function EditorialLineView({ data }: EditorialLineViewProps) {
         </div>
       )}
 
-      {/* Cadence */}
       {cadence && (
-        <div className="border border-empire-gold/20 bg-empire-gold/5 p-5">
+        <div id="el-cadence" className="border border-empire-gold/20 bg-empire-gold/5 p-5 scroll-mt-8">
           <div className="flex items-center gap-2 mb-2">
             <Clock className="w-5 h-5 text-empire-gold" />
             <h2 className="font-display text-xl font-semibold text-empire-text">Cadência de Publicação</h2>
@@ -95,9 +129,8 @@ export function EditorialLineView({ data }: EditorialLineViewProps) {
         </div>
       )}
 
-      {/* Channels */}
       {channels && channels.length > 0 && (
-        <div>
+        <div id="el-channels" className="scroll-mt-8">
           <div className="flex items-center gap-2 mb-4">
             <Radio className="w-5 h-5 text-empire-gold" />
             <h2 className="font-display text-xl font-semibold text-empire-text">Canais Estratégicos</h2>
@@ -115,17 +148,22 @@ export function EditorialLineView({ data }: EditorialLineViewProps) {
         </div>
       )}
 
-      {/* Content Formats */}
       {content_formats && content_formats.length > 0 && (
-        <div>
-          <h2 className="font-display text-xl font-semibold text-empire-text mb-4">
-            Formatos de Conteúdo
-          </h2>
+        <div id="el-formats" className="scroll-mt-8">
+          <div className="flex items-center gap-2 mb-4">
+            <FileText className="w-5 h-5 text-empire-gold" />
+            <h2 className="font-display text-xl font-semibold text-empire-text">Formatos de Conteúdo</h2>
+          </div>
+          {formatBank && formatBank.length > 0 && (
+            <p className="text-xs text-empire-text/40 mb-3">
+              Formatos destacados em <span className="text-empire-gold/60">dourado</span> estão disponíveis no Banco de Formatos — clique para ver.
+            </p>
+          )}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {content_formats.map((fmt, i) => (
               <div key={i} className="bg-empire-card border border-empire-border p-4">
                 <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-medium text-empire-text text-sm">{fmt.name}</h3>
+                  <FormatTag name={fmt.name} formatBank={formatBank} />
                   <span className="text-xs bg-empire-surface border border-empire-border text-empire-text/50 px-2 py-0.5">
                     {fmt.channel}
                   </span>
@@ -137,9 +175,8 @@ export function EditorialLineView({ data }: EditorialLineViewProps) {
         </div>
       )}
 
-      {/* Sections */}
       {sections && sections.length > 0 && (
-        <div className="space-y-6">
+        <div id="el-sections" className="space-y-6 scroll-mt-8">
           {sections.map((section, i) => (
             <div key={i} className="bg-empire-card border border-empire-border p-6">
               <h2 className="font-display text-xl font-semibold text-empire-text mb-3">

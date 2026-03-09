@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { supabase } from '@/integrations/supabase/client'
 import { useAuth } from '@/contexts/AuthContext'
 import type { Database } from '@/integrations/supabase/types'
@@ -92,6 +93,9 @@ export function useUploadMarkdown(
       queryClient.invalidateQueries({ queryKey: ['deliverable', clientId, type] })
       queryClient.invalidateQueries({ queryKey: ['deliverables', clientId] })
     },
+    onError: () => {
+      toast.error('Erro ao fazer upload do arquivo.')
+    },
   })
 }
 
@@ -111,8 +115,12 @@ export function usePublishDeliverable() {
       return data
     },
     onSuccess: () => {
+      toast.success('Entregável publicado para o cliente.')
       queryClient.invalidateQueries({ queryKey: ['deliverable'] })
       queryClient.invalidateQueries({ queryKey: ['deliverables'] })
+    },
+    onError: () => {
+      toast.error('Erro ao publicar entregável.')
     },
   })
 }

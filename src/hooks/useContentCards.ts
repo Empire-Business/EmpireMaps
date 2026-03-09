@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { supabase } from '@/integrations/supabase/client'
 import { useAuth } from '@/contexts/AuthContext'
 import type { Database } from '@/integrations/supabase/types'
@@ -44,7 +45,11 @@ export function useCreateCard(clientId: string | undefined) {
       return data
     },
     onSuccess: () => {
+      toast.success('Card criado.')
       queryClient.invalidateQueries({ queryKey: ['content-cards', clientId] })
+    },
+    onError: () => {
+      toast.error('Erro ao criar card.')
     },
   })
 }
@@ -72,6 +77,9 @@ export function useUpdateCard() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['content-cards'] })
     },
+    onError: () => {
+      toast.error('Erro ao atualizar card.')
+    },
   })
 }
 
@@ -87,7 +95,11 @@ export function useDeleteCard() {
       if (error) throw error
     },
     onSuccess: () => {
+      toast.success('Card removido.')
       queryClient.invalidateQueries({ queryKey: ['content-cards'] })
+    },
+    onError: () => {
+      toast.error('Erro ao remover card.')
     },
   })
 }
