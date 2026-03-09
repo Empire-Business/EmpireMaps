@@ -2,10 +2,10 @@ import { useEffect, useCallback } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Lock, Send } from 'lucide-react'
+import { Lock, Send, Unlock } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useImpersonation } from '@/contexts/ImpersonationContext'
-import { useDiagnostic, useSaveDiagnostic, useSubmitDiagnostic } from '@/hooks/useDiagnostic'
+import { useDiagnostic, useSaveDiagnostic, useSubmitDiagnostic, useUnlockDiagnostic } from '@/hooks/useDiagnostic'
 import { DdiSelector } from '@/components/ui/DdiSelector'
 import { formatDateTime } from '@/lib/utils'
 import type { Database } from '@/integrations/supabase/types'
@@ -62,6 +62,7 @@ export default function DiagnosticPage() {
   const { data: diagnostic, isLoading } = useDiagnostic(clientId)
   const saveMutation = useSaveDiagnostic(clientId)
   const submitMutation = useSubmitDiagnostic(clientId)
+  const unlockMutation = useUnlockDiagnostic(clientId)
 
   const isLocked = diagnostic?.is_locked === true
   const readOnly = isLocked && !canEdit
@@ -181,12 +182,24 @@ export default function DiagnosticPage() {
         </p>
 
         {isLocked && diagnostic?.submitted_at && (
-          <div className="mt-4 flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 px-4 py-3">
-            <Lock className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-            <p className="text-emerald-400 text-sm">
-              Formulário enviado em {formatDateTime(diagnostic.submitted_at)}.
-              {canEdit && ' (Você pode editar como admin/consultor.)'}
-            </p>
+          <div className="mt-4 flex items-center justify-between bg-emerald-500/10 border border-emerald-500/20 px-4 py-3">
+            <div className="flex items-center gap-2">
+              <Lock className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+              <p className="text-emerald-400 text-sm">
+                Formulário enviado em {formatDateTime(diagnostic.submitted_at)}.
+                {canEdit && ' (Você pode editar como admin/consultor.)'}
+              </p>
+            </div>
+            {canEdit && (
+              <button
+                onClick={() => unlockMutation.mutate()}
+                disabled={unlockMutation.isPending}
+                className="flex items-center gap-1.5 text-xs text-empire-gold/80 hover:text-empire-gold border border-empire-gold/30 hover:border-empire-gold/60 px-3 py-1.5 transition-colors disabled:opacity-50 flex-shrink-0 ml-4"
+              >
+                <Unlock className="w-3.5 h-3.5" />
+                {unlockMutation.isPending ? 'Desbloqueando...' : 'Desbloquear'}
+              </button>
+            )}
           </div>
         )}
       </div>

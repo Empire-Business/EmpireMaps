@@ -1,15 +1,20 @@
 import { useQuery } from '@tanstack/react-query'
-import { Users, UserCheck, UserCog, Activity } from 'lucide-react'
+import { Users, UserCheck, UserCog, Activity, ClipboardList } from 'lucide-react'
 import { supabase } from '@/integrations/supabase/client'
 import { formatDateTime } from '@/lib/utils'
 import type { Database } from '@/integrations/supabase/types'
 
 type Profile = Database['public']['Tables']['profiles']['Row']
 type ImpersonationLog = Database['public']['Tables']['impersonation_logs']['Row']
+type DiagnosticRow = Database['public']['Tables']['client_diagnostics']['Row']
 
 interface ImpersonationLogWithProfiles extends ImpersonationLog {
   consultant: Profile | null
   client: Profile | null
+}
+
+interface DiagnosticWithProfile extends DiagnosticRow {
+  profile: Profile | null
 }
 
 function StatCard({
@@ -49,6 +54,20 @@ export default function AdminDashboard() {
       const { data, error } = await supabase.from('profiles').select('*')
       if (error) throw error
       return data ?? []
+    },
+  })
+
+  const { data: diagnostics, isLoading: loadingDiagnostics } = useQuery({
+    queryKey: ['admin-diagnostics-recent'],
+    queryFn: async (): Promise<DiagnosticWithProfile[]> => {
+      const { data, error } = await supabase
+        .from('client_diagnostics')
+        .select(`*, profile:profiles!client_diagnostics_client_id_fkey(id, full_name, role, avatar_url, created_at, updated_at)`)
+        .eq('is_locked', true)
+        .order('submitted_at', { ascending: false })
+        .limit(10)
+      if (error) throw error
+      return (data ?? []) as DiagnosticWithProfile[]
     },
   })
 
@@ -102,6 +121,59 @@ export default function AdminDashboard() {
           icon={UserCheck}
           loading={loadingProfiles}
         />
+      </div>
+
+      {/* Diagnostics */}
+      <div className="bg-empire-card border border-empire-border">
+        <div className="px-6 py-4 border-b border-empire-border flex items-center gap-3">
+          <ClipboardList className="w-4 h-4 text-empire-gold" />
+          <h2 className="text-sm font-medium text-empire-text">Diagnósticos Enviados</h2>
+        </div>
+
+        {loadingDiagnostics ? (
+          <div className="p-6 space-y-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="h-10 bg-empire-surface animate-pulse rounded" />
+            ))}
+          </div>
+        ) : !diagnostics || diagnostics.length === 0 ? (
+          <div className="px-6 py-12 text-center">
+            <ClipboardList className="w-8 h-8 text-empire-text/20 mx-auto mb-3" />
+            <p className="text-empire-text/40 text-sm">Nenhum diagnóstico enviado ainda.</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-empire-border">
+                  <th className="text-left px-6 py-3 text-empire-text/50 font-normal">Cliente</th>
+                  <th className="text-left px-6 py-3 text-empire-text/50 font-normal">Enviado em</th>
+                  <th className="text-left px-6 py-3 text-empire-text/50 font-normal">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {diagnostics.map((d) => (
+                  <tr
+                    key={d.id}
+                    className="border-b border-empire-border/50 hover:bg-empire-surface/50 transition-colors"
+                  >
+                    <td className="px-6 py-3 text-empire-text">
+                      {d.profile?.full_name ?? '—'}
+                    </td>
+                    <td className="px-6 py-3 text-empire-text/60">
+                      {d.submitted_at ? formatDateTime(d.submitted_at) : '—'}
+                    </td>
+                    <td className="px-6 py-3">
+                      <span className="text-xs bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-2 py-0.5">
+                        Enviado
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {/* Impersonation Logs */}

@@ -1,13 +1,15 @@
 import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Search, Users, LogIn } from 'lucide-react'
+import { Search, Users, LogIn, ClipboardCheck, ClipboardList } from 'lucide-react'
 import { useMyClients } from '@/hooks/useClients'
 import { useDeliverablesMulti } from '@/hooks/useDeliverablesMulti'
+import { useDiagnosticsMulti } from '@/hooks/useDiagnostic'
 import { useImpersonation } from '@/contexts/ImpersonationContext'
 import type { Database } from '@/integrations/supabase/types'
 
 type Profile = Database['public']['Tables']['profiles']['Row']
 type DeliverableRow = Database['public']['Tables']['deliverables']['Row']
+type DiagnosticRow = Database['public']['Tables']['client_diagnostics']['Row']
 
 const TOTAL_DELIVERABLES = 3 // risk_map, brand_book, editorial_line
 
@@ -24,10 +26,12 @@ function getInitials(name: string | null): string {
 function ClientCard({
   client,
   deliverables,
+  diagnostic,
   onImpersonate,
 }: {
   client: Profile
   deliverables: DeliverableRow[]
+  diagnostic?: DiagnosticRow
   onImpersonate: () => void
 }) {
   const published = deliverables.filter((d) => d.status === 'published').length
@@ -46,6 +50,19 @@ function ClientCard({
           <p className="text-empire-text/50 text-xs mt-0.5">
             {published}/{TOTAL_DELIVERABLES} entregáveis publicados
           </p>
+          <div className="flex items-center gap-1 mt-1">
+            {diagnostic?.is_locked ? (
+              <span className="flex items-center gap-1 text-xs text-emerald-400">
+                <ClipboardCheck className="w-3 h-3" />
+                Diagnóstico enviado
+              </span>
+            ) : (
+              <span className="flex items-center gap-1 text-xs text-empire-text/30">
+                <ClipboardList className="w-3 h-3" />
+                Diagnóstico pendente
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
@@ -82,6 +99,7 @@ export default function ConsultantDashboard() {
 
   const clientIds = useMemo(() => clients?.map((c) => c.id) ?? [], [clients])
   const { data: deliverablesMap } = useDeliverablesMulti(clientIds)
+  const { data: diagnosticsMap } = useDiagnosticsMulti(clientIds)
 
   const filtered = useMemo(() => {
     if (!clients) return []
@@ -149,6 +167,7 @@ export default function ConsultantDashboard() {
               key={client.id}
               client={client}
               deliverables={deliverablesMap?.[client.id] ?? []}
+              diagnostic={diagnosticsMap?.[client.id]}
               onImpersonate={() => handleImpersonate(client)}
             />
           ))}

@@ -2,8 +2,9 @@ import { useState, useMemo } from 'react'
 import { useForm, useFieldArray } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Plus, X, Library, Archive, Edit2, Trash2 } from 'lucide-react'
+import { Plus, X, Library, Archive, Edit2, Trash2, Upload } from 'lucide-react'
 import { useAllContentFormats, useCreateFormat, useUpdateFormat } from '@/hooks/useContentFormats'
+import { supabase } from '@/integrations/supabase/client'
 import { cn } from '@/lib/utils'
 import type { Database } from '@/integrations/supabase/types'
 
@@ -42,6 +43,31 @@ function FormatModal({ format, onClose }: FormatModalProps) {
   const createFormat = useCreateFormat()
   const updateFormat = useUpdateFormat()
   const [error, setError] = useState<string | null>(null)
+  const [thumbnailUrl, setThumbnailUrl] = useState(format?.thumbnail_url ?? '')
+  const [uploading, setUploading] = useState(false)
+
+  async function handleThumbnailUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (file.size > 2 * 1024 * 1024) {
+      setError('Imagem deve ter no máximo 2MB.')
+      return
+    }
+    setUploading(true)
+    setError(null)
+    try {
+      const ext = file.name.split('.').pop()
+      const path = `thumbnails/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+      const { error: upErr } = await supabase.storage.from('format-thumbnails').upload(path, file)
+      if (upErr) throw upErr
+      const { data: urlData } = supabase.storage.from('format-thumbnails').getPublicUrl(path)
+      setThumbnailUrl(urlData.publicUrl)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao fazer upload')
+    } finally {
+      setUploading(false)
+    }
+  }
 
   const defaultTips = format?.tips?.map((t) => ({ value: t })) ?? [{ value: '' }]
   const rawExamples = format?.examples
@@ -101,6 +127,7 @@ function FormatModal({ format, onClose }: FormatModalProps) {
         examples: examples.length ? examples : null,
         tags,
         status: data.status,
+        thumbnail_url: thumbnailUrl || null,
       }
       if (format) {
         await updateFormat.mutateAsync({ id: format.id, data: payload })
@@ -162,6 +189,23 @@ function FormatModal({ format, onClose }: FormatModalProps) {
               ))}
             </div>
             {errors.platforms && <p className="text-red-400 text-xs mt-1">{errors.platforms.message}</p>}
+          </div>
+
+          <div>
+            <label className="block text-sm text-empire-text/70 mb-1.5">Thumbnail</label>
+            <div className="flex items-center gap-4">
+              {thumbnailUrl && (
+                <img src={thumbnailUrl} alt="Thumbnail" className="w-16 h-16 object-cover border border-empire-border" />
+              )}
+              <label className={cn(
+                'flex items-center gap-2 cursor-pointer text-xs border px-3 py-2 transition-colors',
+                uploading ? 'opacity-50 cursor-wait' : 'border-empire-border text-empire-text/60 hover:text-empire-gold hover:border-empire-gold/40'
+              )}>
+                <Upload className="w-3.5 h-3.5" />
+                {uploading ? 'Enviando...' : 'Upload de imagem'}
+                <input type="file" accept="image/*" onChange={handleThumbnailUpload} className="hidden" disabled={uploading} />
+              </label>
+            </div>
           </div>
 
           <div>
