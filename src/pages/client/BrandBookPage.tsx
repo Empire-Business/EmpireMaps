@@ -3,7 +3,8 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useImpersonation } from '@/contexts/ImpersonationContext'
 import { useDeliverable } from '@/hooks/useDeliverable'
 import { MarkdownUploader } from '@/components/deliverables/MarkdownUploader'
-import { BrandBookView, type BrandBookData } from '@/components/deliverables/BrandBookView'
+import { BrandBookView, getBrandBookNavItems, type BrandBookData } from '@/components/deliverables/BrandBookView'
+import { DeliverableNav } from '@/components/deliverables/DeliverableNav'
 import type { Database } from '@/integrations/supabase/types'
 
 type Json = Database['public']['Tables']['deliverables']['Row']['processed_json']
@@ -21,11 +22,14 @@ export default function BrandBookPage() {
   const clientId = effectiveProfile?.id ?? user?.id
 
   const { data: deliverable, isLoading } = useDeliverable(clientId, 'brand_book')
+  const isReady = deliverable?.status === 'published'
+  const parsedData = isReady ? parseBrandBookData(deliverable!.processed_json) : {}
+  const navItems = getBrandBookNavItems(parsedData)
 
   return (
-    <div className="p-8 max-w-5xl space-y-6">
+    <div className="p-8 space-y-6">
       {/* Header */}
-      <div>
+      <div className="max-w-5xl">
         <p className="text-empire-gold text-sm tracking-widest uppercase mb-1">Fase 2</p>
         <h1 className="font-display text-3xl font-semibold text-empire-text">Brand Book</h1>
         <p className="text-empire-text/60 mt-1 text-sm">
@@ -35,18 +39,20 @@ export default function BrandBookPage() {
 
       {/* Uploader for admin/consultant */}
       {clientId && (
-        <MarkdownUploader clientId={clientId} type="brand_book" />
+        <div className="max-w-5xl">
+          <MarkdownUploader clientId={clientId} type="brand_book" />
+        </div>
       )}
 
       {/* Content */}
       {isLoading ? (
-        <div className="space-y-4">
+        <div className="space-y-4 max-w-5xl">
           {Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="h-32 bg-empire-card border border-empire-border animate-pulse" />
           ))}
         </div>
       ) : !deliverable || deliverable.status === 'locked' ? (
-        <div className="py-24 flex flex-col items-center gap-4 text-center">
+        <div className="py-24 flex flex-col items-center gap-4 text-center max-w-5xl">
           <div className="w-16 h-16 bg-empire-card border border-empire-border flex items-center justify-center">
             <Lock className="w-7 h-7 text-empire-text/30" />
           </div>
@@ -58,7 +64,7 @@ export default function BrandBookPage() {
           </div>
         </div>
       ) : deliverable.status === 'in_progress' ? (
-        <div className="py-24 flex flex-col items-center gap-4 text-center">
+        <div className="py-24 flex flex-col items-center gap-4 text-center max-w-5xl">
           <Loader2 className="w-10 h-10 text-empire-gold/60 animate-spin" />
           <div>
             <p className="text-empire-text/60 font-medium">Processando...</p>
@@ -68,7 +74,12 @@ export default function BrandBookPage() {
           </div>
         </div>
       ) : (
-        <BrandBookView data={parseBrandBookData(deliverable.processed_json)} />
+        <div className="flex gap-8">
+          <div className="flex-1 min-w-0 max-w-4xl">
+            <BrandBookView data={parsedData} />
+          </div>
+          <DeliverableNav items={navItems} />
+        </div>
       )}
     </div>
   )

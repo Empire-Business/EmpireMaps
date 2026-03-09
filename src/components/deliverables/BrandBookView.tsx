@@ -92,6 +92,17 @@ function VoiceSection({ title, voice }: { title: string; voice: Voice }) {
   )
 }
 
+export function getBrandBookNavItems(data: BrandBookData) {
+  const items = []
+  if (data.thesis) items.push({ id: 'bb-thesis', label: 'Tese da Marca' })
+  if (data.archetype) items.push({ id: 'bb-archetype', label: 'Arquétipo' })
+  if (data.positioning) items.push({ id: 'bb-positioning', label: 'Posicionamento' })
+  if (data.written_voice || data.spoken_voice) items.push({ id: 'bb-voice', label: 'Tom de Voz' })
+  if (data.key_messages?.length) items.push({ id: 'bb-messages', label: 'Mensagens-Chave' })
+  if (data.sections?.length) items.push({ id: 'bb-sections', label: 'Seções' })
+  return items
+}
+
 interface BrandBookViewProps {
   data: BrandBookData
 }
@@ -103,7 +114,7 @@ export function BrandBookView({ data }: BrandBookViewProps) {
     <div className="space-y-8">
       {/* Thesis */}
       {thesis && (
-        <div className="bg-empire-card border border-empire-border p-6">
+        <div id="bb-thesis" className="bg-empire-card border border-empire-border p-6 scroll-mt-8">
           <h2 className="font-display text-xl font-semibold text-empire-text mb-3">Tese da Marca</h2>
           <p className="text-empire-text/70 leading-relaxed text-lg italic">&ldquo;{thesis}&rdquo;</p>
         </div>
@@ -111,7 +122,7 @@ export function BrandBookView({ data }: BrandBookViewProps) {
 
       {/* Archetype - Gold highlight */}
       {archetype && (
-        <div className="border border-empire-gold/30 bg-empire-gold/5 p-6">
+        <div id="bb-archetype" className="border border-empire-gold/30 bg-empire-gold/5 p-6 scroll-mt-8">
           <p className="text-empire-gold text-xs tracking-widest uppercase mb-2">Arquétipo de Marca</p>
           <h2 className="font-display text-3xl font-semibold text-empire-text">{archetype}</h2>
         </div>
@@ -119,7 +130,7 @@ export function BrandBookView({ data }: BrandBookViewProps) {
 
       {/* Positioning */}
       {positioning && (
-        <div className="bg-empire-card border border-empire-border p-6">
+        <div id="bb-positioning" className="bg-empire-card border border-empire-border p-6 scroll-mt-8">
           <h2 className="font-display text-xl font-semibold text-empire-text mb-3">Posicionamento</h2>
           <p className="text-empire-text/70 leading-relaxed">{positioning}</p>
         </div>
@@ -127,7 +138,7 @@ export function BrandBookView({ data }: BrandBookViewProps) {
 
       {/* Voice */}
       {(written_voice || spoken_voice) && (
-        <div className="space-y-6">
+        <div id="bb-voice" className="space-y-6 scroll-mt-8">
           <h2 className="font-display text-xl font-semibold text-empire-text">Tom de Voz</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {written_voice && (
@@ -146,7 +157,7 @@ export function BrandBookView({ data }: BrandBookViewProps) {
 
       {/* Key Messages */}
       {key_messages && key_messages.length > 0 && (
-        <div>
+        <div id="bb-messages" className="scroll-mt-8">
           <h2 className="font-display text-xl font-semibold text-empire-text mb-4">
             Mensagens-Chave
           </h2>

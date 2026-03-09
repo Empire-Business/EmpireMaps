@@ -1,12 +1,123 @@
 import { useState, useMemo } from 'react'
-import { ChevronLeft, ChevronRight, Share2, Filter, TrendingUp, CheckCircle2, Calendar } from 'lucide-react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
+import { ChevronLeft, ChevronRight, Share2, Filter, TrendingUp, CheckCircle2, Calendar, Plus, X } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useImpersonation } from '@/contexts/ImpersonationContext'
-import { useContentCards } from '@/hooks/useContentCards'
+import { useContentCards, useCreateCard } from '@/hooks/useContentCards'
 import { cn } from '@/lib/utils'
 import type { Database } from '@/integrations/supabase/types'
 
 type ContentCard = Database['public']['Tables']['content_cards']['Row']
+
+// ---- Quick Add Modal ----
+const quickAddSchema = z.object({
+  title: z.string().min(1, 'Título obrigatório'),
+  channel: z.string().optional(),
+  status: z.enum(['ideia', 'em_producao', 'revisao', 'agendado', 'publicado', 'arquivado'] as const),
+})
+type QuickAddData = z.infer<typeof quickAddSchema>
+
+const CHANNEL_OPTIONS = [
+  'Instagram', 'LinkedIn', 'YouTube', 'TikTok', 'Twitter/X',
+  'Facebook', 'Pinterest', 'Blog', 'Email', 'Outro',
+]
+
+interface QuickAddModalProps {
+  date: Date
+  clientId: string
+  onClose: () => void
+}
+
+function QuickAddModal({ date, clientId, onClose }: QuickAddModalProps) {
+  const createCard = useCreateCard(clientId)
+  const dateStr = date.toISOString().split('T')[0]
+  const dateLabel = date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })
+
+  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<QuickAddData>({
+    resolver: zodResolver(quickAddSchema),
+    defaultValues: { status: 'agendado' },
+  })
+
+  async function onSubmit(data: QuickAddData) {
+    try {
+      await createCard.mutateAsync({
+        title: data.title,
+        channel: data.channel || null,
+        status: data.status,
+        publish_date: dateStr,
+      })
+      onClose()
+    } catch {
+      // toast handled in hook
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 px-4">
+      <div className="bg-empire-card border border-empire-border w-full max-w-md p-6">
+        <div className="flex items-center justify-between mb-1">
+          <h2 className="font-display text-lg font-semibold text-empire-text">Novo conteúdo</h2>
+          <button onClick={onClose} className="text-empire-text/40 hover:text-empire-text transition-colors">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        <p className="text-empire-text/50 text-xs mb-5">Publicação em {dateLabel}</p>
+
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <div>
+            <label className="block text-sm text-empire-text/70 mb-1.5">Título *</label>
+            <input
+              {...register('title')}
+              autoFocus
+              className="w-full bg-empire-surface border border-empire-border text-empire-text px-4 py-2.5 text-sm focus:outline-none focus:border-empire-gold/50 transition-colors"
+              placeholder="Título do conteúdo"
+            />
+            {errors.title && <p className="text-red-400 text-xs mt-1">{errors.title.message}</p>}
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm text-empire-text/70 mb-1.5">Canal</label>
+              <select
+                {...register('channel')}
+                className="w-full bg-empire-surface border border-empire-border text-empire-text px-4 py-2.5 text-sm focus:outline-none focus:border-empire-gold/50 transition-colors"
+              >
+                <option value="">Selecione...</option>
+                {CHANNEL_OPTIONS.map((c) => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm text-empire-text/70 mb-1.5">Status</label>
+              <select
+                {...register('status')}
+                className="w-full bg-empire-surface border border-empire-border text-empire-text px-4 py-2.5 text-sm focus:outline-none focus:border-empire-gold/50 transition-colors"
+              >
+                <option value="ideia">Ideia</option>
+                <option value="em_producao">Em Produção</option>
+                <option value="revisao">Revisão</option>
+                <option value="agendado">Agendado</option>
+                <option value="publicado">Publicado</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="flex gap-3 pt-2">
+            <button type="button" onClick={onClose} className="flex-1 btn-secondary justify-center">Cancelar</button>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="flex-1 btn-premium justify-center disabled:opacity-50"
+            >
+              {isSubmitting ? 'Salvando...' : 'Criar'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
 
 const CHANNEL_COLORS: Record<string, string> = {
   Instagram: 'bg-pink-500/20 text-pink-300 border-pink-500/30',
@@ -90,6 +201,7 @@ export default function DistributionMapPage() {
   const today = new Date()
   const [viewYear, setViewYear] = useState(today.getFullYear())
   const [viewMonth, setViewMonth] = useState(today.getMonth())
+  const [quickAddDate, setQuickAddDate] = useState<Date | null>(null)
 
   // Filters
   const [filterChannel, setFilterChannel] = useState<string>('all')
@@ -364,20 +476,31 @@ export default function DistributionMapPage() {
                 <div
                   key={i}
                   className={cn(
-                    'bg-empire-card min-h-24 p-1.5 flex flex-col gap-1',
+                    'bg-empire-card min-h-24 p-1.5 flex flex-col gap-1 group/day',
                     isToday && 'bg-empire-gold/5'
                   )}
                 >
-                  <span
-                    className={cn(
-                      'text-xs font-medium w-6 h-6 flex items-center justify-center flex-shrink-0',
-                      isToday
-                        ? 'bg-empire-gold text-empire-bg'
-                        : 'text-empire-text/50'
+                  <div className="flex items-center justify-between">
+                    <span
+                      className={cn(
+                        'text-xs font-medium w-6 h-6 flex items-center justify-center flex-shrink-0',
+                        isToday
+                          ? 'bg-empire-gold text-empire-bg'
+                          : 'text-empire-text/50'
+                      )}
+                    >
+                      {day.getDate()}
+                    </span>
+                    {clientId && (
+                      <button
+                        onClick={() => setQuickAddDate(day)}
+                        className="opacity-0 group-hover/day:opacity-100 transition-opacity text-empire-text/30 hover:text-empire-gold"
+                        title="Adicionar conteúdo neste dia"
+                      >
+                        <Plus className="w-3 h-3" />
+                      </button>
                     )}
-                  >
-                    {day.getDate()}
-                  </span>
+                  </div>
                   <div className="space-y-0.5">
                     {dayCards.slice(0, 3).map((card) => (
                       <CardPill key={card.id} card={card} />
@@ -393,6 +516,15 @@ export default function DistributionMapPage() {
             })}
           </div>
         </div>
+      )}
+
+      {/* Quick Add Modal */}
+      {quickAddDate && clientId && (
+        <QuickAddModal
+          date={quickAddDate}
+          clientId={clientId}
+          onClose={() => setQuickAddDate(null)}
+        />
       )}
 
       {/* Empty state */}

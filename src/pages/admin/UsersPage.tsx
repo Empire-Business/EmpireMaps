@@ -1,14 +1,16 @@
 import { useState, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Search, Plus, Link as LinkIcon, X, Users } from 'lucide-react'
+import { Search, Plus, Link as LinkIcon, X, Users, LogIn } from 'lucide-react'
 import {
   useUsers,
   useCreateUser,
   useLinkConsultantClient,
   useConsultantClients,
 } from '@/hooks/useUsers'
+import { useImpersonation } from '@/contexts/ImpersonationContext'
 import { cn, formatDate } from '@/lib/utils'
 import type { Database } from '@/integrations/supabase/types'
 
@@ -42,7 +44,6 @@ interface NewUserModalProps {
 
 function NewUserModal({ onClose }: NewUserModalProps) {
   const createUser = useCreateUser()
-  const [edgeFunctionMsg, setEdgeFunctionMsg] = useState<string | null>(null)
 
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<NewUserFormData>({
     resolver: zodResolver(newUserSchema),
@@ -57,9 +58,9 @@ function NewUserModal({ onClose }: NewUserModalProps) {
         role: data.role,
         fullName: data.full_name,
       })
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Erro desconhecido'
-      setEdgeFunctionMsg(msg)
+      onClose()
+    } catch {
+      // toast handled in hook
     }
   }
 
@@ -72,12 +73,6 @@ function NewUserModal({ onClose }: NewUserModalProps) {
             <X className="w-5 h-5" />
           </button>
         </div>
-
-        {edgeFunctionMsg && (
-          <div className="mb-4 bg-amber-500/10 border border-amber-500/30 px-4 py-3 text-sm text-amber-400">
-            Esta ação requer a Edge Function send-welcome-email. Configure a CLI do Supabase para habilitar.
-          </div>
-        )}
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
@@ -224,12 +219,19 @@ function LinkConsultantModal({ client, consultants, onClose }: LinkConsultantMod
 type TabFilter = 'all' | UserRole
 
 export default function UsersPage() {
+  const navigate = useNavigate()
+  const { startImpersonation } = useImpersonation()
   const { data: users, isLoading } = useUsers()
   const { data: consultantClients } = useConsultantClients()
   const [tab, setTab] = useState<TabFilter>('all')
   const [search, setSearch] = useState('')
   const [showNewUser, setShowNewUser] = useState(false)
   const [linkingClient, setLinkingClient] = useState<Profile | null>(null)
+
+  async function handleImpersonate(client: Profile) {
+    await startImpersonation(client)
+    navigate('/client/dashboard')
+  }
 
   const consultants = useMemo(
     () => users?.filter((u) => u.role === 'consultant') ?? [],
@@ -366,13 +368,22 @@ export default function UsersPage() {
                       </td>
                       <td className="px-6 py-4">
                         {user.role === 'client' && (
-                          <button
-                            onClick={() => setLinkingClient(user)}
-                            className="flex items-center gap-1.5 text-xs text-empire-gold/70 hover:text-empire-gold transition-colors"
-                          >
-                            <LinkIcon className="w-3.5 h-3.5" />
-                            Vincular Consultor
-                          </button>
+                          <div className="flex items-center gap-3">
+                            <button
+                              onClick={() => setLinkingClient(user)}
+                              className="flex items-center gap-1.5 text-xs text-empire-text/50 hover:text-empire-text transition-colors"
+                            >
+                              <LinkIcon className="w-3.5 h-3.5" />
+                              Vincular
+                            </button>
+                            <button
+                              onClick={() => handleImpersonate(user)}
+                              className="flex items-center gap-1.5 text-xs text-empire-gold/70 hover:text-empire-gold transition-colors"
+                            >
+                              <LogIn className="w-3.5 h-3.5" />
+                              Entrar
+                            </button>
+                          </div>
                         )}
                       </td>
                     </tr>
