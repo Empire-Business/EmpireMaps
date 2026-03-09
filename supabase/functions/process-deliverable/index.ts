@@ -34,34 +34,29 @@ Retorne um JSON com a seguinte estrutura:
   ]
 }`,
 
-  brand_book: `Você é um especialista em branding e identidade visual.
+  brand_book: `Você é um especialista em branding e identidade de marca.
 Analise o documento Markdown fornecido e extraia os dados estruturados do Brand Book.
-Retorne um JSON com a seguinte estrutura:
+Retorne um JSON com EXATAMENTE a seguinte estrutura (use null para campos ausentes):
 {
-  "brand_name": "string",
-  "tagline": "string",
-  "mission": "string",
-  "vision": "string",
-  "values": ["string"],
-  "voice_tone": {
-    "personality": ["string"],
-    "communication_style": "string",
-    "do": ["string"],
-    "dont": ["string"]
+  "thesis": "string com a tese ou essência da marca",
+  "archetype": "string com o arquétipo de marca (ex: O Sábio, O Herói, etc)",
+  "positioning": "string com o posicionamento de mercado",
+  "written_voice": {
+    "tone": "string descrevendo o tom de voz escrito",
+    "examples": [
+      { "correct": "exemplo correto", "avoid": "exemplo a evitar" }
+    ]
   },
-  "colors": [
-    { "name": "string", "hex": "string", "usage": "string" }
-  ],
-  "typography": {
-    "primary": "string",
-    "secondary": "string",
-    "usage_notes": "string"
+  "spoken_voice": {
+    "tone": "string descrevendo o tom de voz falado",
+    "examples": [
+      { "correct": "exemplo correto", "avoid": "exemplo a evitar" }
+    ]
   },
-  "target_audience": {
-    "description": "string",
-    "pain_points": ["string"],
-    "desires": ["string"]
-  }
+  "key_messages": ["mensagem chave 1", "mensagem chave 2"],
+  "sections": [
+    { "title": "título da seção extra", "content": "conteúdo da seção" }
+  ]
 }`,
 
   editorial_line: `Você é um estrategista de conteúdo digital.
