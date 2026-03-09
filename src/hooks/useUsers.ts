@@ -126,6 +126,27 @@ export function useUnlinkConsultantClient() {
   })
 }
 
+export function useToggleUserActive() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ userId, isActive }: { userId: string; isActive: boolean }): Promise<void> => {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ is_active: isActive, updated_at: new Date().toISOString() })
+        .eq('id', userId)
+      if (error) throw error
+    },
+    onSuccess: (_, { isActive }) => {
+      toast.success(isActive ? 'Usuário ativado.' : 'Usuário desativado.')
+      queryClient.invalidateQueries({ queryKey: ['users'] })
+    },
+    onError: () => {
+      toast.error('Erro ao alterar status do usuário.')
+    },
+  })
+}
+
 export function useConsultantClients() {
   return useQuery({
     queryKey: ['consultant_clients'],

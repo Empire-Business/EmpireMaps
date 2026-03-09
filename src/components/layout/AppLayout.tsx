@@ -4,10 +4,12 @@ import { Sidebar } from './Sidebar'
 import { Header } from './Header'
 import { ImpersonationBanner } from '@/components/impersonation/ImpersonationBanner'
 import { useImpersonation } from '@/contexts/ImpersonationContext'
+import { useRealtimeNotifications } from '@/hooks/useRealtimeNotifications'
 
 export function AppLayout() {
   const { isImpersonating } = useImpersonation()
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  useRealtimeNotifications()
 
   return (
     <div className={`flex min-h-screen bg-empire-bg ${isImpersonating ? 'pt-9' : ''}`}>

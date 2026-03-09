@@ -19,6 +19,7 @@ export type Database = {
           role: 'admin' | 'consultant' | 'client'
           full_name: string | null
           avatar_url: string | null
+          is_active: boolean
           created_at: string
           updated_at: string
         }
@@ -27,6 +28,7 @@ export type Database = {
           role: 'admin' | 'consultant' | 'client'
           full_name?: string | null
           avatar_url?: string | null
+          is_active?: boolean
           created_at?: string
           updated_at?: string
         }
@@ -35,6 +37,7 @@ export type Database = {
           role?: 'admin' | 'consultant' | 'client'
           full_name?: string | null
           avatar_url?: string | null
+          is_active?: boolean
           updated_at?: string
         }
         Relationships: []
@@ -327,6 +330,40 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      deliverable_versions: {
+        Row: {
+          id: string
+          deliverable_id: string
+          version_number: number
+          raw_markdown: string | null
+          processed_json: Json | null
+          uploaded_by: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          deliverable_id: string
+          version_number?: number
+          raw_markdown?: string | null
+          processed_json?: Json | null
+          uploaded_by?: string | null
+          created_at?: string
+        }
+        Update: {
+          version_number?: number
+          raw_markdown?: string | null
+          processed_json?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'deliverable_versions_deliverable_id_fkey'
+            columns: ['deliverable_id']
+            isOneToOne: false
+            referencedRelation: 'deliverables'
+            referencedColumns: ['id']
+          },
+        ]
       }
       impersonation_logs: {
         Row: {

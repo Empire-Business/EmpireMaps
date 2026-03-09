@@ -3,12 +3,13 @@ import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Search, Plus, Link as LinkIcon, X, Users, LogIn } from 'lucide-react'
+import { Search, Plus, Link as LinkIcon, X, Users, LogIn, Power, ChevronLeft, ChevronRight } from 'lucide-react'
 import {
   useUsers,
   useCreateUser,
   useLinkConsultantClient,
   useConsultantClients,
+  useToggleUserActive,
 } from '@/hooks/useUsers'
 import { useImpersonation } from '@/contexts/ImpersonationContext'
 import { cn, formatDate } from '@/lib/utils'
@@ -227,6 +228,9 @@ export default function UsersPage() {
   const [search, setSearch] = useState('')
   const [showNewUser, setShowNewUser] = useState(false)
   const [linkingClient, setLinkingClient] = useState<Profile | null>(null)
+  const [page, setPage] = useState(0)
+  const toggleActive = useToggleUserActive()
+  const PAGE_SIZE = 15
 
   async function handleImpersonate(client: Profile) {
     await startImpersonation(client)
@@ -253,6 +257,9 @@ export default function UsersPage() {
     }
     return list
   }, [users, tab, search])
+
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE)
+  const paginated = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
 
   const tabs: { id: TabFilter; label: string }[] = [
     { id: 'all', label: 'Todos' },
@@ -332,11 +339,12 @@ export default function UsersPage() {
                   <th className="text-left px-6 py-3 text-empire-text/50 font-normal">Perfil</th>
                   <th className="text-left px-6 py-3 text-empire-text/50 font-normal">Consultor vinculado</th>
                   <th className="text-left px-6 py-3 text-empire-text/50 font-normal">Cadastro</th>
+                  <th className="text-left px-6 py-3 text-empire-text/50 font-normal">Status</th>
                   <th className="px-6 py-3" />
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((user) => {
+                {paginated.map((user) => {
                   const linkedConsultant = user.role === 'client' ? getLinkedConsultant(user.id) : null
                   return (
                     <tr
@@ -367,6 +375,20 @@ export default function UsersPage() {
                         {formatDate(user.created_at)}
                       </td>
                       <td className="px-6 py-4">
+                        <button
+                          onClick={() => toggleActive.mutate({ userId: user.id, isActive: !user.is_active })}
+                          className={cn(
+                            'flex items-center gap-1.5 text-xs px-2 py-1 border transition-colors',
+                            user.is_active
+                              ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20'
+                              : 'bg-red-500/10 border-red-500/20 text-red-400 hover:bg-red-500/20'
+                          )}
+                        >
+                          <Power className="w-3 h-3" />
+                          {user.is_active ? 'Ativo' : 'Inativo'}
+                        </button>
+                      </td>
+                      <td className="px-6 py-4">
                         {user.role === 'client' && (
                           <div className="flex items-center gap-3">
                             <button
@@ -394,6 +416,34 @@ export default function UsersPage() {
           </div>
         )}
       </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between">
+          <p className="text-xs text-empire-text/40">
+            Mostrando {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, filtered.length)} de {filtered.length}
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setPage((p) => Math.max(0, p - 1))}
+              disabled={page === 0}
+              className="p-1.5 border border-empire-border text-empire-text/60 hover:text-empire-text disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <span className="text-xs text-empire-text/60">
+              {page + 1} / {totalPages}
+            </span>
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+              disabled={page >= totalPages - 1}
+              className="p-1.5 border border-empire-border text-empire-text/60 hover:text-empire-text disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {showNewUser && <NewUserModal onClose={() => setShowNewUser(false)} />}
       {linkingClient && (

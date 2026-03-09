@@ -6,6 +6,7 @@ import type { Database } from '@/integrations/supabase/types'
 
 type DeliverableRow = Database['public']['Tables']['deliverables']['Row']
 type DeliverableType = DeliverableRow['type']
+type VersionRow = Database['public']['Tables']['deliverable_versions']['Row']
 
 export function useDeliverable(
   clientId: string | undefined,
@@ -60,6 +61,33 @@ export function useUploadMarkdown(
         .maybeSingle()
 
       if (existing) {
+        // Save current version before overwriting (best-effort)
+        const { data: current } = await supabase
+          .from('deliverables')
+          .select('id, raw_markdown, processed_json')
+          .eq('id', existing.id)
+          .single()
+        if (current?.raw_markdown) {
+          const { data: lastVersion } = await supabase
+            .from('deliverable_versions')
+            .select('version_number')
+            .eq('deliverable_id', current.id)
+            .order('version_number', { ascending: false })
+            .limit(1)
+            .maybeSingle()
+          const nextVersion = (lastVersion?.version_number ?? 0) + 1
+          await supabase
+            .from('deliverable_versions')
+            .insert({
+              deliverable_id: current.id,
+              version_number: nextVersion,
+              raw_markdown: current.raw_markdown,
+              processed_json: current.processed_json,
+              uploaded_by: user?.id ?? null,
+            })
+            .catch(() => {}) // best-effort
+        }
+
         const { data, error } = await supabase
           .from('deliverables')
           .update({
@@ -95,6 +123,22 @@ export function useUploadMarkdown(
     },
     onError: () => {
       toast.error('Erro ao fazer upload do arquivo.')
+    },
+  })
+}
+
+export function useDeliverableVersions(deliverableId: string | undefined) {
+  return useQuery({
+    queryKey: ['deliverable-versions', deliverableId],
+    enabled: !!deliverableId,
+    queryFn: async (): Promise<VersionRow[]> => {
+      const { data, error } = await supabase
+        .from('deliverable_versions')
+        .select('*')
+        .eq('deliverable_id', deliverableId!)
+        .order('version_number', { ascending: false })
+      if (error) throw error
+      return data ?? []
     },
   })
 }

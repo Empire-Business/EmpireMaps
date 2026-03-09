@@ -1,8 +1,9 @@
 import { useRef, useState } from 'react'
-import { Upload, AlertCircle, Loader2, Eye, Send, FileText } from 'lucide-react'
+import { Upload, AlertCircle, Loader2, Eye, Send, FileText, History } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/contexts/AuthContext'
-import { useUploadMarkdown, useDeliverable, usePublishDeliverable } from '@/hooks/useDeliverable'
+import { useUploadMarkdown, useDeliverable, usePublishDeliverable, useDeliverableVersions } from '@/hooks/useDeliverable'
+import { formatDateTime } from '@/lib/utils'
 import { supabase } from '@/integrations/supabase/client'
 import { cn } from '@/lib/utils'
 import type { Database } from '@/integrations/supabase/types'
@@ -30,6 +31,7 @@ export function MarkdownUploader({ clientId, type }: MarkdownUploaderProps) {
   const uploadMutation = useUploadMarkdown(clientId, type)
   const publishMutation = usePublishDeliverable()
   const { data: deliverable } = useDeliverable(clientId, type)
+  const { data: versions } = useDeliverableVersions(deliverable?.id)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [uploadState, setUploadState] = useState<UploadState>('idle')
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
@@ -269,6 +271,23 @@ export function MarkdownUploader({ clientId, type }: MarkdownUploaderProps) {
               <><Send className="w-4 h-4" /> Publicar para o cliente</>
             )}
           </button>
+        </div>
+      )}
+      {/* Version history */}
+      {versions && versions.length > 0 && (
+        <div className="border-t border-empire-border pt-3 space-y-2">
+          <div className="flex items-center gap-2">
+            <History className="w-3.5 h-3.5 text-empire-text/40" />
+            <span className="text-xs text-empire-text/40">Versões anteriores ({versions.length})</span>
+          </div>
+          <ul className="space-y-1">
+            {versions.slice(0, 5).map((v) => (
+              <li key={v.id} className="text-xs text-empire-text/30 flex items-center justify-between">
+                <span>v{v.version_number}</span>
+                <span>{formatDateTime(v.created_at)}</span>
+              </li>
+            ))}
+          </ul>
         </div>
       )}
     </div>

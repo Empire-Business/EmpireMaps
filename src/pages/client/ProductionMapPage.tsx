@@ -24,6 +24,7 @@ import {
 import { useAuth } from '@/contexts/AuthContext'
 import { useImpersonation } from '@/contexts/ImpersonationContext'
 import { useContentCards, useCreateCard, useUpdateCard, useDeleteCard } from '@/hooks/useContentCards'
+import { useContentFormats } from '@/hooks/useContentFormats'
 import { useCardAttachments, useUploadAttachment, useDeleteAttachment } from '@/hooks/useCardAttachments'
 import { ProductionMapUploader } from '@/components/deliverables/ProductionMapUploader'
 import { supabase } from '@/integrations/supabase/client'
@@ -71,6 +72,7 @@ const cardSchema = z.object({
   production_date: z.string().optional(),
   publish_date: z.string().optional(),
   responsible: z.string().optional(),
+  format_id: z.string().optional(),
   labels: z.string().optional(),
   publish_url: z.string().optional(),
   internal_notes: z.string().optional(),
@@ -195,6 +197,7 @@ function CardModal({ card, defaultStatus, clientId, canSeeInternalNotes, canDele
   const createCard = useCreateCard(clientId)
   const updateCard = useUpdateCard()
   const deleteCard = useDeleteCard()
+  const { data: formats } = useContentFormats()
   const [error, setError] = useState<string | null>(null)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [reuseLoading, setReuseLoading] = useState(false)
@@ -235,6 +238,7 @@ function CardModal({ card, defaultStatus, clientId, canSeeInternalNotes, canDele
       title: card?.title ?? '',
       description: card?.description ?? '',
       channel: card?.channel ?? '',
+      format_id: card?.format_id ?? '',
       status: card?.status ?? defaultStatus ?? 'ideia',
       production_date: card?.production_date ?? '',
       publish_date: card?.publish_date ?? '',
@@ -273,6 +277,7 @@ function CardModal({ card, defaultStatus, clientId, canSeeInternalNotes, canDele
         title: data.title,
         description: data.description || null,
         channel: data.channel || null,
+        format_id: data.format_id || null,
         status: data.status,
         production_date: data.production_date || null,
         publish_date: data.publish_date || null,
@@ -397,6 +402,19 @@ function CardModal({ card, defaultStatus, clientId, canSeeInternalNotes, canDele
                 ))}
               </select>
             </div>
+          </div>
+
+          <div>
+            <label className="block text-sm text-empire-text/70 mb-1.5">Formato</label>
+            <select
+              {...register('format_id')}
+              className="w-full bg-empire-surface border border-empire-border text-empire-text px-4 py-2.5 text-sm focus:outline-none focus:border-empire-gold/50 transition-colors"
+            >
+              <option value="">Selecione um formato...</option>
+              {formats?.map((f) => (
+                <option key={f.id} value={f.id}>{f.name}</option>
+              ))}
+            </select>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
