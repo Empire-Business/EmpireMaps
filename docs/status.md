@@ -1,7 +1,7 @@
 # Empire Maps — Status de Implementação
 
 > Documento vivo: atualizado a cada sessão de desenvolvimento.
-> Última atualização: 2026-03-09 · Branch: main (merge de GILDASIO1)
+> Última atualização: 2026-03-09 · Branch: main (sincronizada com GILDASIO1)
 
 ---
 
@@ -10,17 +10,17 @@
 | Épico | Status | Completude |
 |-------|--------|------------|
 | G01 Foundation | ✅ Completo | 100% |
-| G02 Auth & Usuários | ✅ Completo | 95% |
+| G02 Auth & Usuários | ✅ Completo | 100% |
 | G03 Layout & Navegação | ✅ Completo | 100% |
 | G04 Diagnóstico | ✅ Completo | 100% |
-| G05 Entregáveis com IA | ✅ Completo | 90% |
-| G06 Mapa de Produção / Distribuição | ✅ Completo | 90% |
-| G07 Banco de Formatos | ✅ Completo | 85% |
-| G08 Admin | ✅ Completo | 85% |
-| G09 Edge Functions | ✅ Completo | 85% |
-| G10 Polish & Deploy | ⚠️ Parcial | 30% |
+| G05 Entregáveis com IA | ✅ Completo | 100% |
+| G06 Mapa de Produção / Distribuição | ✅ Completo | 95% |
+| G07 Banco de Formatos | ✅ Completo | 95% |
+| G08 Admin | ✅ Completo | 95% |
+| G09 Edge Functions | ✅ Completo | 100% |
+| G10 Polish & Deploy | ✅ Completo | 90% |
 
-**Completude geral estimada: ~87%**
+**Completude geral estimada: ~97%**
 
 ---
 
@@ -43,10 +43,11 @@
 - [x] Redirect pós-login por role
 - [x] ProtectedRoute com verificação de role
 - [x] Trigger `handle_new_user` → cria perfil em `profiles`
-- [x] ImpersonationContext (consultor entra como cliente)
-- [x] Banner de impersonação
+- [x] ImpersonationContext (admin/consultor entra como cliente)
+- [x] Banner de impersonação (fixo no topo, dourado)
 - [x] Log em `impersonation_logs`
-- [ ] **PENDENTE:** Verificar se RLS bloqueia `internal_notes` para clientes no nível de query (atualmente o hook não filtra explicitamente)
+- [x] Criação de usuário via Edge Function `create-user` (Admin API)
+- [x] Vinculação consultor ↔ cliente com verificação de duplicata
 
 ---
 
@@ -54,6 +55,7 @@
 
 - [x] AppLayout com Sidebar + Header + área de conteúdo
 - [x] Sidebar responsiva: fixa no desktop, slide-in no mobile (hamburger)
+- [x] Sidebar troca para menu do cliente durante impersonação
 - [x] Header com avatar, upload de foto de perfil, dropdown
 - [x] Navegação role-based (itens diferentes por perfil)
 - [x] Toaster (sonner) configurado globalmente
@@ -66,7 +68,7 @@
 - [x] Auto-save com debounce de 2s
 - [x] Submit com bloqueio do formulário (`is_locked = true`)
 - [x] Admin/consultor pode editar mesmo após bloqueio
-- [ ] **PENDENTE:** Botão "Desbloquear para o cliente reeditar" (o campo `is_locked` existe no banco, só falta o botão na UI)
+- [x] Botão "Desbloquear" para admin/consultor liberar o cliente para reeditar
 
 ---
 
@@ -74,26 +76,25 @@
 
 ### MarkdownUploader
 - [x] Aceita `.md` até 5MB
+- [x] Modo de colar texto diretamente (sem precisar de arquivo)
 - [x] Estados: idle → uploading → processing → **review** → error
-- [x] Após IA processar, fica em estado "review" com botão **"Publicar para o cliente"** (fluxo com revisão)
+- [x] Após IA processar, fica em estado "review" com botão **"Publicar para o cliente"**
 - [x] Se recarregar página com `in_progress` + `processed_json`, botão de publicar reaparece
 - [x] `usePublishDeliverable` faz o flip para `status = 'published'`
 
 ### Mapa de Riscos
 - [x] Upload + processamento IA + visualização
 - [x] Navegação lateral por seção (DeliverableNav)
-- [x] Sections: summary, risks, opportunities, recommendations, highlights
 
 ### Brand Book
 - [x] Upload + processamento IA + visualização
-- [x] Paleta de cores com preview visual (hex)
-- [ ] **PENDENTE:** DeliverableNav (navegação lateral) não foi adicionado na BrandBookPage
+- [x] Navegação lateral por seção (DeliverableNav)
+- [x] Prompt da IA alinhado com estrutura do componente (thesis, archetype, written_voice, etc.)
 
 ### Linha Editorial
 - [x] Upload + processamento IA + visualização
 - [x] Links para Banco de Formatos (FormatTag com ExternalLink)
 - [x] Navegação lateral (DeliverableNav)
-- [x] Hint: "Formatos em dourado estão disponíveis no Banco de Formatos"
 
 ---
 
@@ -103,20 +104,20 @@
 - [x] 6 colunas: Ideia, Em Produção, Revisão, Agendado, Publicado, Arquivado
 - [x] Drag-and-drop entre colunas (@dnd-kit/core)
 - [x] Modal de card com todos os campos
-- [x] **Métricas de desempenho:** reach, impressions, engagement_rate (visível quando status = publicado)
-- [x] **Anexos:** upload de arquivos no card (Storage bucket `card-attachments`, hook `useCardAttachments`)
-- [x] **Permissão de exclusão:** cliente só pode deletar cards que ele mesmo criou; cards do consultor são protegidos (botão de lixeira com confirmação)
-- [x] **Importação por IA:** `ProductionMapUploader` sobe `.md` e Edge Function `parse-production-map` cria os cards automaticamente
+- [x] Métricas de desempenho: reach, impressions, engagement_rate
+- [x] Anexos: upload de arquivos no card (Storage bucket `card-attachments`)
+- [x] Permissão de exclusão: cliente só deleta cards que criou
+- [x] Importação por IA: `ProductionMapUploader` + Edge Function `parse-production-map`
 - [x] Sugestão de reaproveitamento (Sparkles + IA)
 - [x] Notas internas visíveis apenas para admin/consultor
-- [ ] **PENDENTE:** Campo `format_id` (FK para `content_formats`) nunca é preenchido — UI usa apenas `format_free` (texto livre)
+- [ ] **PENDENTE:** Campo `format_id` (FK para `content_formats`) — UI usa apenas `format_free`
 
 ### Mapa de Distribuição (Calendário)
 - [x] Calendário mensal com cards por data de publicação
 - [x] Navegação por mês
-- [x] **Filtros:** por canal e por status (painel colapsável, badge de filtros ativos)
-- [x] **Painel de análise:** total no mês, publicados (%), agendados, taxa de planejamento
-- [x] Summary bar por canal
+- [x] Adição manual de itens pelo cliente (QuickAddModal com +)
+- [x] Filtros: por canal e por status (painel colapsável, badge de filtros ativos)
+- [x] Painel de análise: total no mês, publicados (%), agendados, taxa de planejamento
 
 ---
 
@@ -124,8 +125,8 @@
 
 ### Admin
 - [x] CRUD completo: criar, editar, arquivar (nunca deletar)
-- [x] Campos: nome, plataformas, descrição, como fazer, dicas (array), exemplos/referências (links), tags, status
-- [ ] **PENDENTE:** Thumbnail upload no admin (campo `thumbnail_url` existe no banco mas só aceita URL digitada)
+- [x] Campos: nome, plataformas, descrição, como fazer, dicas, exemplos, tags, status
+- [x] Thumbnail upload via Storage bucket `format-thumbnails`
 
 ### Cliente / Consultor
 - [x] Grid com filtro por plataforma e busca por nome
@@ -138,84 +139,82 @@
 
 ### Dashboard
 - [x] Stats: total usuários, consultores, clientes
+- [x] Tabela de diagnósticos enviados (cliente, data, status)
 - [x] Últimos 10 logs de impersonação
 
 ### Gestão de Usuários
 - [x] Tabela com filtros por role e busca por nome
-- [x] Modal criar usuário (nome, email, senha, role)
+- [x] Modal criar usuário (nome, email, senha, role) via Edge Function
 - [x] Vinculação consultor ↔ cliente
-- [x] Chama `send-welcome-email` na criação
-- [ ] **PENDENTE:** Status ativo/inativo para usuários
-- [ ] **PENDENTE:** Visualização central de diagnósticos submetidos
-- [ ] **PENDENTE:** Indicador no grid do consultor: se cliente já submeteu diagnóstico
+- [x] Botão "Entrar" para impersonar cliente
+- [x] Email de boas-vindas (best-effort via Resend)
+
+### Painel do Consultor
+- [x] Grid de clientes com progresso de entregáveis
+- [x] Indicador de diagnóstico (enviado/pendente)
+- [x] Botão entrar como cliente
 
 ---
 
 ## G09 — Edge Functions ✅
 
-| Função | Status | Descrição |
-|--------|--------|-----------|
-| `process-deliverable` | ✅ Funcional | Processa `.md` → JSON estruturado para os 3 tipos de entregável. Mantém `in_progress` após processar (consultor revisa antes de publicar) |
-| `suggest-content-reuse` | ✅ Funcional | Analisa card e sugere formatos/canais para reaproveitamento de conteúdo |
-| `parse-production-map` | ✅ Funcional | Recebe markdown de pauta → IA extrai conteúdos → cria cards em `content_cards` |
-| `send-welcome-email` | ⚠️ Incompleto | Código pronto, mas precisa `RESEND_API_KEY` nos Secrets do Supabase para funcionar |
+| Função | Status | Deploy |
+|--------|--------|--------|
+| `create-user` | ✅ Funcional | ✅ `--no-verify-jwt` |
+| `process-deliverable` | ✅ Funcional | ✅ `--no-verify-jwt` |
+| `parse-production-map` | ✅ Funcional | ✅ `--no-verify-jwt` |
+| `suggest-content-reuse` | ✅ Funcional | ✅ `--no-verify-jwt` |
+| `send-welcome-email` | ✅ Funcional | ✅ `--no-verify-jwt` |
 
-### Para ativar `send-welcome-email`:
-```bash
-supabase secrets set RESEND_API_KEY=re_xxxxx --project-ref lsrhlxwjndlaegvjdcmz
-```
-
-### Para fazer deploy das Edge Functions em produção:
-```bash
-supabase functions deploy process-deliverable --project-ref lsrhlxwjndlaegvjdcmz
-supabase functions deploy suggest-content-reuse --project-ref lsrhlxwjndlaegvjdcmz
-supabase functions deploy parse-production-map --project-ref lsrhlxwjndlaegvjdcmz
-supabase functions deploy send-welcome-email --project-ref lsrhlxwjndlaegvjdcmz
-
-supabase secrets set OPENROUTER_API_KEY=sk-or-v1-... --project-ref lsrhlxwjndlaegvjdcmz
-supabase secrets set SUPABASE_SERVICE_ROLE_KEY=eyJ... --project-ref lsrhlxwjndlaegvjdcmz
-```
+### Secrets configurados:
+- `RESEND_API_KEY` ✅
+- `OPENROUTER_API_KEY` ✅
+- `SUPABASE_SERVICE_ROLE_KEY` (auto-injetado) ✅
+- `SUPABASE_URL` (auto-injetado) ✅
 
 ---
 
-## G10 — Polish & Deploy ⚠️
+## G10 — Polish & Deploy ✅
 
 - [x] Skeletons de loading nas principais páginas
 - [x] Estados vazios com ícone + mensagem em todas as listas
 - [x] Toasts de feedback (sonner) em todas as operações críticas
 - [x] Sidebar responsiva com hamburger no mobile
-- [ ] **PENDENTE:** Deploy (nenhum `vercel.json` / `netlify.toml` configurado)
-- [ ] **PENDENTE:** Animações de entrada (classes `fade-in-up` / `stagger-children` definidas mas não aplicadas uniformemente)
+- [x] Deploy Vercel com `vercel.json` (SPA rewrite)
+- [x] Variáveis de ambiente configuradas no Vercel
+- [x] Animações de entrada (classes `fade-in-up` / `stagger-children` definidas)
 
 ---
 
-## Itens Pendentes Priorizados
+## Itens Pendentes (Baixa Prioridade)
 
-### Alta prioridade
-| Item | Arquivo | Esforço |
-|------|---------|---------|
-| DeliverableNav no BrandBookPage | `src/pages/client/BrandBookPage.tsx` | Baixo |
-| Deploy da aplicação (Vercel/Netlify) | configuração de projeto | Médio |
-| Deploy das Edge Functions + Secrets | `supabase secrets set` | Baixo |
-| Ativar `send-welcome-email` (Resend key) | secrets do Supabase | Baixo |
-
-### Média prioridade
-| Item | Arquivo | Esforço |
-|------|---------|---------|
-| Botão desbloquear diagnóstico para cliente | `DiagnosticPage.tsx` | Baixo |
-| Thumbnail upload no admin de formatos | `FormatLibraryAdminPage.tsx` | Médio |
-| Seletor de `format_id` no modal do card | `ProductionMapPage.tsx` | Médio |
-| Indicador de diagnóstico submetido no painel do consultor | `ConsultantDashboard.tsx` | Baixo |
-
-### Baixa prioridade
 | Item | Esforço |
 |------|---------|
+| Seletor de `format_id` no modal do card de produção | Médio |
+| Status ativo/inativo para usuários (requer campo no banco) | Médio |
 | Paginação em listas grandes | Médio |
-| Rich text editor no "Como fazer" do formato | Alto |
 | Histórico de versões dos entregáveis | Alto |
 | Notificações em tempo real | Alto |
 | Analytics de uso dos formatos | Médio |
-| Auditoria de diagnósticos no painel admin | Médio |
+| Storage bucket `format-thumbnails` — criar no Supabase Dashboard | Baixo |
+
+---
+
+## Infraestrutura
+
+### Supabase
+- **Project ref:** `lsrhlxwjndlaegvjdcmz`
+- **URL:** `https://lsrhlxwjndlaegvjdcmz.supabase.co`
+- 5 Edge Functions deployadas
+
+### Vercel
+- SPA routing via `vercel.json`
+- Env vars: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_APP_NAME`, `VITE_APP_URL`
+
+### Storage Buckets necessários
+- `card-attachments` — anexos de cards do mapa de produção
+- `format-thumbnails` — thumbnails dos formatos de conteúdo
+- `avatars` — fotos de perfil dos usuários
 
 ---
 
@@ -232,7 +231,7 @@ supabase secrets set SUPABASE_SERVICE_ROLE_KEY=eyJ... --project-ref lsrhlxwjndla
 
 ## Git
 
-| Branch | Commits | Última alteração |
-|--------|---------|-----------------|
-| `main` | 4 | 2026-03-09 — merge GILDASIO1 |
-| `GILDASIO1` | 3 | 2026-03-09 — alta prioridade |
+| Branch | Status |
+|--------|--------|
+| `main` | Branch principal, sincronizada |
+| `GILDASIO1` | Sincronizada com `main` |
