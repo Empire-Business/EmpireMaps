@@ -1,0 +1,3 @@
+-- Enable Realtime for deliverables and content_cards
+ALTER PUBLICATION supabase_realtime ADD TABLE public.deliverables;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.content_cards;
