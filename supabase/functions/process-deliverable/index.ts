@@ -16,21 +16,36 @@ interface ProcessRequest {
 }
 
 const SYSTEM_PROMPTS: Record<string, string> = {
-  risk_map: `Você é um especialista em análise de riscos para negócios digitais.
-Analise o documento Markdown fornecido e extraia os dados estruturados do Mapa de Riscos.
-Retorne um JSON com a seguinte estrutura:
+  risk_map: `Você é um especialista em diagnóstico estratégico de negócios digitais e posicionamento de autoridade.
+
+Analise o documento Markdown fornecido e gere um diagnóstico estruturado em EXATAMENTE 5 dimensões de risco/oportunidade. Escolha as 5 dimensões mais relevantes para o negócio/perfil descrito no documento. Exemplos de dimensões: Posicionamento, Audiência, Oferta, Autoridade, Operação, Crescimento, Presença Digital, Maturidade Comercial — use as que fizerem mais sentido para o contexto.
+
+Para cada dimensão, atribua um score de 1.0 a 5.0 (use decimais como 2.5, 3.5):
+- 1.0–2.4 = Crítico (risco alto, ação urgente)
+- 2.5–3.9 = Atenção (risco moderado, melhoria necessária)
+- 4.0–5.0 = OK (risco baixo, manter e evoluir)
+
+Baseie TODA a análise exclusivamente nos dados do documento fornecido. Cite trechos reais para fundamentar os scores.
+
+Retorne APENAS um JSON válido, sem texto antes ou depois, sem markdown, sem backticks:
 {
-  "summary": "string com resumo geral",
-  "risks": [
+  "perfil_resumo": "Uma frase descrevendo o negócio ou cliente analisado",
+  "dimensoes": [
     {
-      "id": "string",
-      "title": "string",
-      "description": "string",
-      "probability": "low" | "medium" | "high",
-      "impact": "low" | "medium" | "high",
-      "category": "string",
-      "mitigation": "string"
+      "id": "snake_case_id",
+      "label": "Nome da Dimensão",
+      "score": 3.5,
+      "justificativa": "Justificativa baseada nos dados do documento. Cite trechos específicos.",
+      "evidencias": ["Evidência 1 extraída do documento", "Evidência 2 extraída do documento"],
+      "recomendacao": "O que fazer agora — direto ao ponto, sem rodeios."
     }
+  ],
+  "score_global": 2.8,
+  "veredito": "Frase direta e honesta sobre o estado atual do negócio e o principal desafio a resolver.",
+  "prioridades": [
+    "Prioridade 1 — a ação mais urgente e de maior impacto",
+    "Prioridade 2 — segunda ação mais importante",
+    "Prioridade 3 — terceira ação recomendada"
   ]
 }`,
 

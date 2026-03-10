@@ -10,7 +10,7 @@ import type { Database } from '@/integrations/supabase/types'
 type Json = Database['public']['Tables']['deliverables']['Row']['processed_json']
 
 function parseRiskMapData(json: Json): RiskMapData {
-  if (!json || typeof json !== 'object' || Array.isArray(json)) return {}
+  if (!json || typeof json !== 'object' || Array.isArray(json)) return {} as RiskMapData
   return json as RiskMapData
 }
 
