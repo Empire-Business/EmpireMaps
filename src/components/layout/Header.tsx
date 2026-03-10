@@ -1,10 +1,11 @@
-import { useRef, useState } from 'react'
-import { LogOut, Menu, Camera } from 'lucide-react'
+import { useRef, useState, useEffect } from 'react'
+import { LogOut, Menu, Camera, Search } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '@/integrations/supabase/client'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { GlobalSearch } from '@/components/search/GlobalSearch'
 
 const ROLE_LABELS = {
   admin: 'Admin',
@@ -22,6 +23,18 @@ export function Header({ onMenuClick }: HeaderProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [avatarMenuOpen, setAvatarMenuOpen] = useState(false)
   const [uploading, setUploading] = useState(false)
+  const [searchOpen, setSearchOpen] = useState(false)
+
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault()
+        setSearchOpen((o) => !o)
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
 
   async function handleLogout() {
     await logout()
@@ -75,6 +88,8 @@ export function Header({ onMenuClick }: HeaderProps) {
   }
 
   return (
+    <>
+    <GlobalSearch open={searchOpen} onClose={() => setSearchOpen(false)} />
     <header className="h-16 bg-empire-surface border-b border-empire-border flex items-center justify-between px-4 lg:px-6">
       {/* Hamburger — mobile only */}
       <button
@@ -85,10 +100,28 @@ export function Header({ onMenuClick }: HeaderProps) {
         <Menu className="w-5 h-5" />
       </button>
 
-      {/* Empty space on desktop */}
-      <div className="hidden lg:block" />
+      {/* Search trigger — desktop */}
+      <button
+        onClick={() => setSearchOpen(true)}
+        className="hidden lg:flex items-center gap-2 bg-empire-bg border border-empire-border px-3 py-1.5 text-sm text-empire-text/40 hover:text-empire-text/70 hover:border-empire-border/80 transition-colors"
+      >
+        <Search className="w-3.5 h-3.5" />
+        <span>Buscar...</span>
+        <kbd className="flex items-center gap-0.5 text-xs bg-empire-surface border border-empire-border px-1.5 py-0.5 ml-4">
+          Ctrl K
+        </kbd>
+      </button>
 
       <div className="flex items-center gap-4">
+        {/* Search trigger — mobile */}
+        <button
+          onClick={() => setSearchOpen(true)}
+          className="lg:hidden text-empire-text/50 hover:text-empire-text transition-colors p-1"
+          aria-label="Buscar"
+        >
+          <Search className="w-5 h-5" />
+        </button>
+
         {/* Avatar + name */}
         <div className="relative">
           <button
@@ -161,5 +194,6 @@ export function Header({ onMenuClick }: HeaderProps) {
         </button>
       </div>
     </header>
+    </>
   )
 }

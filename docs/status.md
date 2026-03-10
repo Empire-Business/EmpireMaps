@@ -1,7 +1,7 @@
 # Empire Maps — Status de Implementação
 
 > Documento vivo: atualizado a cada sessão de desenvolvimento.
-> Última atualização: 2026-03-09 · Branch: main (sincronizada com GILDASIO1)
+> Última atualização: 2026-03-10 · Branch: main (sincronizada com GILDASIO1)
 
 ---
 
@@ -14,13 +14,13 @@
 | G03 Layout & Navegação | ✅ Completo | 100% |
 | G04 Diagnóstico | ✅ Completo | 100% |
 | G05 Entregáveis com IA | ✅ Completo | 100% |
-| G06 Mapa de Produção / Distribuição | ✅ Completo | 95% |
-| G07 Banco de Formatos | ✅ Completo | 95% |
-| G08 Admin | ✅ Completo | 95% |
+| G06 Mapa de Produção / Distribuição | ✅ Completo | 100% |
+| G07 Banco de Formatos | ✅ Completo | 100% |
+| G08 Admin | ✅ Completo | 100% |
 | G09 Edge Functions | ✅ Completo | 100% |
-| G10 Polish & Deploy | ✅ Completo | 90% |
+| G10 Polish & Deploy | ✅ Completo | 100% |
 
-**Completude geral estimada: ~97%**
+**Completude geral: 100% 🎉**
 
 ---
 
@@ -132,6 +132,7 @@
 - [x] Grid com filtro por plataforma e busca por nome
 - [x] Drawer lateral com detalhes completos
 - [x] Exemplos/referências como links clicáveis (ExternalLink)
+- [x] Seção "Recentemente vistos" via localStorage (`useRecentFormats`)
 
 ---
 
@@ -183,20 +184,19 @@
 - [x] Deploy Vercel com `vercel.json` (SPA rewrite)
 - [x] Variáveis de ambiente configuradas no Vercel
 - [x] Animações de entrada (classes `fade-in-up` / `stagger-children` definidas)
+- [x] Busca global (Ctrl+K) — `GlobalSearch` com navegação por teclado
+- [x] Sentry error monitoring — `src/lib/sentry.ts` (ativar via `VITE_SENTRY_DSN`)
+- [x] Analytics Plausible — script em `index.html`
 
 ---
 
-## Itens Pendentes (Baixa Prioridade)
+## Itens Pendentes (Infraestrutura / Externo)
 
-| Item | Esforço |
-|------|---------|
-| Seletor de `format_id` no modal do card de produção | Médio |
-| Status ativo/inativo para usuários (requer campo no banco) | Médio |
-| Paginação em listas grandes | Médio |
-| Histórico de versões dos entregáveis | Alto |
-| Notificações em tempo real | Alto |
-| Analytics de uso dos formatos | Médio |
-| Storage bucket `format-thumbnails` — criar no Supabase Dashboard | Baixo |
+| Item | Observação |
+|------|------------|
+| `VITE_SENTRY_DSN` no `.env` | Criar projeto em sentry.io e adicionar DSN |
+| Storage bucket `format-thumbnails` | Criar manualmente no Supabase Dashboard se não existir |
+| Domínio customizado `empiremaps.com.br` | Configurar no Vercel + DNS |
 
 ---
 

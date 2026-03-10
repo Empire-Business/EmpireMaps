@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
-import { Search, Library, X, ExternalLink } from 'lucide-react'
+import { Search, Library, X, ExternalLink, Clock } from 'lucide-react'
 import { useContentFormats } from '@/hooks/useContentFormats'
+import { useRecentFormats } from '@/hooks/useRecentFormats'
 import { cn } from '@/lib/utils'
 import type { Database } from '@/integrations/supabase/types'
 
@@ -187,9 +188,21 @@ function FormatCard({
 // ---- Main Page ----
 export default function FormatLibraryPage() {
   const { data: formats, isLoading } = useContentFormats()
+  const { getRecent, trackView } = useRecentFormats()
   const [selectedFormat, setSelectedFormat] = useState<ContentFormat | null>(null)
   const [activePlatform, setActivePlatform] = useState<string>(ALL_PLATFORMS)
   const [search, setSearch] = useState('')
+
+  const recentIds = useMemo(() => getRecent(), [selectedFormat]) // re-evaluate when drawer closes
+  const recentFormats = useMemo(
+    () => recentIds.map((id) => formats?.find((f) => f.id === id)).filter(Boolean) as ContentFormat[],
+    [recentIds, formats]
+  )
+
+  function handleOpenFormat(format: ContentFormat) {
+    trackView(format.id)
+    setSelectedFormat(format)
+  }
 
   const allPlatforms = useMemo(() => {
     const set = new Set<string>()
@@ -256,6 +269,28 @@ export default function FormatLibraryPage() {
         </div>
       </div>
 
+      {/* Recentemente vistos */}
+      {!isLoading && recentFormats.length > 0 && !search && activePlatform === ALL_PLATFORMS && (
+        <div>
+          <div className="flex items-center gap-2 mb-3">
+            <Clock className="w-3.5 h-3.5 text-empire-text/40" />
+            <span className="text-xs text-empire-text/40 uppercase tracking-wider">Recentemente vistos</span>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {recentFormats.map((format) => (
+              <button
+                key={format.id}
+                onClick={() => handleOpenFormat(format)}
+                className="flex items-center gap-1.5 bg-empire-surface border border-empire-border px-3 py-1.5 text-xs text-empire-text/60 hover:text-empire-gold hover:border-empire-gold/30 transition-colors"
+              >
+                <Library className="w-3 h-3" />
+                {format.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Grid */}
       {isLoading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -282,7 +317,7 @@ export default function FormatLibraryPage() {
             <FormatCard
               key={format.id}
               format={format}
-              onClick={() => setSelectedFormat(format)}
+              onClick={() => handleOpenFormat(format)}
             />
           ))}
         </div>

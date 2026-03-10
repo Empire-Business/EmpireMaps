@@ -76,16 +76,20 @@ export function useUploadMarkdown(
             .limit(1)
             .maybeSingle()
           const nextVersion = (lastVersion?.version_number ?? 0) + 1
-          await supabase
-            .from('deliverable_versions')
-            .insert({
-              deliverable_id: current.id,
-              version_number: nextVersion,
-              raw_markdown: current.raw_markdown,
-              processed_json: current.processed_json,
-              uploaded_by: user?.id ?? null,
-            })
-            .catch(() => {}) // best-effort
+          // best-effort version snapshot
+          try {
+            await supabase
+              .from('deliverable_versions')
+              .insert({
+                deliverable_id: current.id,
+                version_number: nextVersion,
+                raw_markdown: current.raw_markdown,
+                processed_json: current.processed_json,
+                uploaded_by: user?.id ?? null,
+              })
+          } catch {
+            // ignore — versioning is non-critical
+          }
         }
 
         const { data, error } = await supabase
