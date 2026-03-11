@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Plus, X, Users, Power, Trash2, UserPlus } from 'lucide-react'
+import { X, Users, Power, Trash2, UserPlus } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useImpersonation } from '@/contexts/ImpersonationContext'
 import { useEffectiveClientId } from '@/hooks/useEffectiveClientId'
@@ -13,9 +13,7 @@ import {
   useToggleTeamMemberActive,
 } from '@/hooks/useTeamMembers'
 import { cn, formatDate } from '@/lib/utils'
-import type { Database } from '@/integrations/supabase/types'
 
-type Profile = Database['public']['Tables']['profiles']['Row']
 
 const newMemberSchema = z.object({
   full_name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),

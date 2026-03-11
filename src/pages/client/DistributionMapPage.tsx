@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from 'react'
+import { useState, useMemo } from 'react'
 import {
   DndContext,
   DragOverlay,
@@ -17,15 +17,13 @@ import { z } from 'zod'
 import {
   ChevronLeft, ChevronRight, Share2, Filter, TrendingUp,
   CheckCircle2, Calendar, Plus, X, GripVertical, Hash,
-  Paperclip, FileIcon, Upload, Loader2,
+  Paperclip, FileIcon,
 } from 'lucide-react'
-import { useAuth } from '@/contexts/AuthContext'
-import { useImpersonation } from '@/contexts/ImpersonationContext'
 import { useEffectiveClientId } from '@/hooks/useEffectiveClientId'
 import { useContentCards, useCreateCard, useUpdateCard } from '@/hooks/useContentCards'
 import { useSocialProfiles } from '@/hooks/useSocialProfiles'
-import { useCardAttachments, useUploadAttachment, useDeleteAttachment } from '@/hooks/useCardAttachments'
-import { cn, formatDate } from '@/lib/utils'
+import { useCardAttachments } from '@/hooks/useCardAttachments'
+import { cn } from '@/lib/utils'
 import type { Database } from '@/integrations/supabase/types'
 
 type ContentCard = Database['public']['Tables']['content_cards']['Row']
@@ -599,7 +597,7 @@ export default function DistributionMapPage() {
   const totalInMonth = monthCards.length
   const publishedInMonth = monthCards.filter((c) => c.status === 'publicado').length
   const scheduledInMonth = monthCards.filter((c) => c.status === 'agendado').length
-  const approvedInMonth = monthCards.filter((c) => c.status === 'aprovado_final').length
+
   const planningRate = totalInMonth > 0 ? Math.round(((scheduledInMonth + publishedInMonth) / totalInMonth) * 100) : 0
 
   const activeFilters = (filterChannel !== 'all' ? 1 : 0) + (filterStatus !== 'all' ? 1 : 0)
