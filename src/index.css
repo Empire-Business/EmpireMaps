@@ -4,41 +4,123 @@
 
 @layer base {
   :root {
-    /* Empire Colors */
-    --empire-bg: #0a0a0b;
-    --empire-surface: #111113;
-    --empire-card: #18181b;
-    --empire-border: #27272a;
-    --empire-text: #fafafa;
-    --empire-gold: #c9a962;
-    --empire-gold-light: #e4d4a5;
-    --empire-gold-dark: #9a7b3c;
+    /* ─── DS1 Silver Empire · Color System ─── */
+    --void:       #070C14;
+    --empire:     #0D1829;
+    --steel:      #243B55;
+    --platinum:   #BFC5CC;
+    --gold:       #C9A240;
+    --bone:       #F2EFE8;
+    --ink:        #1A1F2E;
+    --ghost:      #E4E2DC;
+    --mist:       #F7F6F2;
+    --danger:     #8B2E2E;
 
-    /* Gradients */
-    --gold-gradient: linear-gradient(135deg, #c9a962 0%, #e4d4a5 50%, #c9a962 100%);
-    --green-gradient: linear-gradient(135deg, #16a34a 0%, #22c55e 50%, #16a34a 100%);
+    /* Semantic Aliases */
+    --bg-primary:   var(--bone);
+    --bg-inverse:   var(--empire);
+    --text-primary: var(--ink);
+    --text-inverse: var(--platinum);
+    --accent:       var(--gold);
 
-    /* shadcn/ui tokens mapeados para o Empire */
-    --background: 0 0% 4%;
-    --foreground: 0 0% 98%;
-    --card: 240 4% 11%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 4% 11%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 40 45% 58%;
-    --primary-foreground: 0 0% 4%;
-    --secondary: 240 4% 7%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 4% 16%;
-    --muted-foreground: 0 0% 60%;
-    --accent: 40 45% 58%;
-    --accent-foreground: 0 0% 4%;
-    --destructive: 0 72% 71%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 4% 16%;
-    --input: 240 4% 16%;
-    --ring: 40 45% 58%;
-    --radius: 0.125rem;
+    /* ─── DS1 Typography ─── */
+    --font-display: 'Cormorant Garamond', Georgia, serif;
+    --font-body:    'DM Sans', system-ui, sans-serif;
+    --font-mono:    'IBM Plex Mono', 'Courier New', monospace;
+
+    /* ─── DS1 Spacing (base-4) ─── */
+    --s4:   0.25rem;
+    --s8:   0.5rem;
+    --s16:  1rem;
+    --s24:  1.5rem;
+    --s32:  2rem;
+    --s48:  3rem;
+    --s64:  4rem;
+    --s96:  6rem;
+    --s128: 8rem;
+
+    /* ─── DS1 Motion ─── */
+    --ease-out:    cubic-bezier(0.0, 0.0, 0.2, 1.0);
+    --ease-in-out: cubic-bezier(0.4, 0.0, 0.2, 1.0);
+    --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1.0);
+    --duration-fast:   150ms;
+    --duration-base:   280ms;
+    --duration-slow:   500ms;
+    --duration-slower: 800ms;
+
+    /* ─── DS1 Shadows ─── */
+    --shadow-sm: 0 1px 3px rgba(7,12,20,0.08), 0 1px 2px rgba(7,12,20,0.04);
+    --shadow-md: 0 4px 16px rgba(7,12,20,0.10), 0 2px 6px rgba(7,12,20,0.06);
+    --shadow-lg: 0 16px 48px rgba(7,12,20,0.14), 0 6px 16px rgba(7,12,20,0.08);
+    --shadow-xl: 0 32px 80px rgba(7,12,20,0.20), 0 12px 32px rgba(7,12,20,0.12);
+
+    /* ─── DS1 Border Radius ─── */
+    --radius-sm: 3px;
+    --radius-md: 6px;
+    --radius-lg: 12px;
+
+    /* ─── DS1 Surface (card/panel bg — swaps in dark) ─── */
+    --surface: #FFFFFF;
+
+    /* ─── DS1 Semantic Status Colors (swap in dark) ─── */
+    --success: #2D7D4A;
+    --warning-text: #8B6A1A;
+
+    /* ─── shadcn/ui tokens (DS1 Silver Empire light) ─── */
+    --background: 37 22% 93%;       /* bone #F2EFE8 */
+    --foreground: 226 18% 14%;      /* ink #1A1F2E */
+    --card: 0 0% 100%;              /* white */
+    --card-foreground: 226 18% 14%; /* ink */
+    --popover: 0 0% 100%;
+    --popover-foreground: 226 18% 14%;
+    --primary: 213 52% 11%;         /* empire #0D1829 */
+    --primary-foreground: 37 22% 93%; /* bone */
+    --secondary: 40 25% 93%;        /* mist #F7F6F2 */
+    --secondary-foreground: 226 18% 14%;
+    --muted: 40 25% 93%;            /* mist */
+    --muted-foreground: 211 41% 24%; /* steel #243B55 */
+    --accent: 42 53% 52%;           /* gold #C9A240 */
+    --accent-foreground: 213 52% 11%;
+    --destructive: 0 50% 36%;       /* danger #8B2E2E */
+    --destructive-foreground: 0 0% 100%;
+    --border: 37 9% 88%;            /* ghost #E4E2DC */
+    --input: 37 9% 88%;
+    --ring: 42 53% 52%;             /* gold */
+    --radius: 0.75rem;  /* DS1 --radius-lg = 12px for shadcn components */
+  }
+
+  /* ─── DS1 Dark Mode ─── */
+  .dark {
+    --bone:       #070C14;  /* void — page bg becomes deepest dark */
+    --ink:        #FFFFFF;  /* white — primary text on dark */
+    --ghost:      rgba(191,197,204,0.1);  /* subtle borders */
+    --mist:       rgba(255,255,255,0.06); /* input bg, section variant */
+    --steel:      #BFC5CC;  /* platinum — secondary text */
+    --danger:     #E07070;  /* lighter red for dark bg */
+    --surface:    rgba(255,255,255,0.04); /* DS1 dark card bg */
+    --success:    #5CD688;  /* lighter green for dark bg */
+    --warning-text: #E8C26A; /* lighter amber for dark bg */
+
+    /* shadcn/ui dark tokens */
+    --background: 216 45% 5%;        /* void */
+    --foreground: 0 0% 100%;         /* white */
+    --card: 213 52% 11%;             /* empire */
+    --card-foreground: 0 0% 100%;
+    --popover: 213 52% 11%;
+    --popover-foreground: 0 0% 100%;
+    --primary: 42 53% 52%;           /* gold */
+    --primary-foreground: 216 45% 5%;
+    --secondary: 213 52% 11%;        /* empire */
+    --secondary-foreground: 0 0% 100%;
+    --muted: 213 52% 11%;
+    --muted-foreground: 220 8% 77%;  /* platinum */
+    --accent: 42 53% 52%;
+    --accent-foreground: 216 45% 5%;
+    --destructive: 0 65% 65%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 8% 77% / 0.1;
+    --input: 220 8% 77% / 0.15;
+    --ring: 42 53% 52%;
   }
 
   * {
@@ -50,101 +132,275 @@
   }
 
   body {
-    @apply bg-empire-bg text-empire-text antialiased;
-    font-family: 'DM Sans', sans-serif;
+    background: var(--bone);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+  }
+
+  /* ─── Header glass background ─── */
+  header {
+    background: color-mix(in srgb, var(--bone) 82%, transparent);
+  }
+
+  /* ─── DS1 Scrollbar dark mode ─── */
+  .dark ::-webkit-scrollbar-track {
+    background: var(--void);
+  }
+  .dark ::-webkit-scrollbar-thumb {
+    background: rgba(191,197,204,0.2);
+  }
+
+  /* ─── DS1 Accessibility: reduced motion ─── */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }
 
 @layer components {
-  /* Typography */
+  /* ─── Typography ─── */
   .font-display {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: var(--font-display);
   }
 
-  /* Gold gradient text */
+  /* ─── Section Label (DS1 pattern) ─── */
+  .section-label {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold);
+    display: flex;
+    align-items: center;
+    gap: var(--s8);
+    margin-bottom: var(--s32);
+  }
+
+  .section-label::before {
+    content: '';
+    display: inline-block;
+    width: 24px;
+    height: 1px;
+    background: var(--gold);
+  }
+
+  /* ─── Buttons (DS1) ─── */
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 1rem;
+    letter-spacing: 0.04em;
+    padding: 10px 20px;
+    border-radius: var(--radius-sm);
+    white-space: nowrap;
+    background: var(--empire);
+    color: var(--bone);
+    border: 1px solid var(--empire);
+    transition: all var(--duration-base) var(--ease-out);
+  }
+
+  .btn-primary:hover {
+    background: var(--ink);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 1rem;
+    letter-spacing: 0.04em;
+    padding: 10px 20px;
+    border-radius: var(--radius-sm);
+    white-space: nowrap;
+    background: transparent;
+    color: var(--empire);
+    border: 1.5px solid var(--empire);
+    transition: all var(--duration-base) var(--ease-out);
+  }
+
+  .btn-secondary:hover {
+    background: var(--empire);
+    color: var(--bone);
+    transform: translateY(-1px);
+  }
+
+  .btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 1rem;
+    letter-spacing: 0.04em;
+    padding: 10px 20px;
+    border-radius: var(--radius-sm);
+    white-space: nowrap;
+    background: transparent;
+    color: var(--steel);
+    border: 1px solid transparent;
+    transition: all var(--duration-base) var(--ease-out);
+  }
+
+  .btn-ghost:hover {
+    background: var(--mist);
+    border-color: var(--ghost);
+    color: var(--ink);
+  }
+
+  .btn-gold {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 1rem;
+    letter-spacing: 0.04em;
+    padding: 10px 20px;
+    border-radius: var(--radius-sm);
+    white-space: nowrap;
+    background: var(--gold);
+    color: var(--empire);
+    border: 1px solid var(--gold);
+    transition: all var(--duration-base) var(--ease-out);
+  }
+
+  .btn-gold:hover {
+    background: #b8912e;
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(201,162,64,0.3);
+  }
+
+  .btn-danger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 1rem;
+    letter-spacing: 0.04em;
+    padding: 10px 20px;
+    border-radius: var(--radius-sm);
+    white-space: nowrap;
+    background: transparent;
+    color: var(--danger);
+    border: 1.5px solid var(--danger);
+    transition: all var(--duration-base) var(--ease-out);
+  }
+
+  .btn-danger:hover {
+    background: var(--danger);
+    color: #FFFFFF;
+    transform: translateY(-1px);
+  }
+
+  /* Legacy btn-premium → maps to btn-gold */
+  .btn-premium {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 1rem;
+    letter-spacing: 0.04em;
+    padding: 10px 20px;
+    border-radius: var(--radius-sm);
+    white-space: nowrap;
+    background: var(--gold);
+    color: var(--empire);
+    border: 1px solid var(--gold);
+    transition: all var(--duration-base) var(--ease-out);
+  }
+
+  .btn-premium:hover {
+    background: #b8912e;
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(201,162,64,0.3);
+  }
+
+  /* ─── Cards (DS1) ─── */
+  .card-hover {
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    transition: transform var(--duration-base) var(--ease-spring),
+                box-shadow var(--duration-base) var(--ease-out);
+  }
+
+  .card-hover:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  /* ─── Gold Gradient Text ─── */
   .text-gold-gradient {
-    background: var(--gold-gradient);
+    background: linear-gradient(135deg, #C9A240 0%, #e8c96d 50%, #C9A240 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
-  /* Gold gradient border */
+  /* ─── Gold Gradient Border ─── */
   .border-gold-gradient {
     border: 1px solid transparent;
-    background: linear-gradient(#18181b, #18181b) padding-box,
-                linear-gradient(135deg, #c9a962, #e4d4a5, #c9a962) border-box;
+    background: linear-gradient(#FFFFFF, #FFFFFF) padding-box,
+                linear-gradient(135deg, #C9A240, #e8c96d, #C9A240) border-box;
+    border-radius: var(--radius-lg);
   }
 
-  /* Buttons */
-  .btn-premium {
-    background: linear-gradient(135deg, #16a34a 0%, #22c55e 50%, #16a34a 100%);
-    color: #ffffff;
-    font-weight: 700;
-    padding: 1rem 2.5rem;
-    border-radius: 2px;
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
-    box-shadow: 0 4px 20px rgba(34, 197, 94, 0.35);
-    letter-spacing: 0.03em;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.75rem;
-  }
-
-  .btn-premium::before {
+  /* ─── Dark Card Top Border ─── */
+  .dark-card-top-border::before {
     content: '';
     position: absolute;
     top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
-    transition: left 0.5s ease;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--gold), transparent);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   }
 
-  .btn-premium:hover::before {
-    left: 100%;
+  /* ─── Animations (DS1) ─── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
   }
 
-  .btn-premium:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 40px rgba(34, 197, 94, 0.5);
+  @keyframes scaleIn {
+    from { transform: scale(0.6); }
+    to   { transform: scale(1); }
   }
 
-  .btn-secondary {
-    background: transparent;
-    border: 1px solid #c9a962;
-    color: #c9a962;
-    padding: 1rem 2.5rem;
-    border-radius: 2px;
-    transition: all 0.3s ease;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.75rem;
+  @keyframes lineGrow {
+    from { transform: scaleX(0); }
+    to   { transform: scaleX(1); }
   }
 
-  .btn-secondary:hover {
-    background: rgba(201, 169, 98, 0.1);
-    transform: translateY(-2px);
-  }
-
-  /* Cards */
-  .card-hover {
-    transition: all 0.4s ease;
-  }
-
-  .card-hover:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
-  }
-
-  /* Animations */
   .fade-in-up {
     opacity: 0;
-    transform: translateY(30px);
-    transition: opacity 0.8s ease, transform 0.8s ease;
+    transform: translateY(24px);
+    transition: opacity var(--duration-slower) var(--ease-out),
+                transform var(--duration-slower) var(--ease-out);
   }
 
   .fade-in-up.visible {
@@ -152,47 +408,278 @@
     transform: translateY(0);
   }
 
+  .reveal {
+    opacity: 0;
+    transform: translateY(32px);
+    transition: opacity var(--duration-slower) var(--ease-out),
+                transform var(--duration-slower) var(--ease-out);
+  }
+
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .reveal-delay-1 { transition-delay: 80ms; }
+  .reveal-delay-2 { transition-delay: 160ms; }
+  .reveal-delay-3 { transition-delay: 240ms; }
+  .reveal-delay-4 { transition-delay: 320ms; }
+  .reveal-delay-5 { transition-delay: 400ms; }
+
   .stagger-children > * {
     opacity: 0;
     transform: translateY(20px);
-    transition: opacity 0.6s ease, transform 0.6s ease;
+    transition: opacity 0.6s var(--ease-out), transform 0.6s var(--ease-out);
   }
 
-  .stagger-children.visible > *:nth-child(1) { transition-delay: 0.1s; }
-  .stagger-children.visible > *:nth-child(2) { transition-delay: 0.2s; }
-  .stagger-children.visible > *:nth-child(3) { transition-delay: 0.3s; }
-  .stagger-children.visible > *:nth-child(4) { transition-delay: 0.4s; }
-  .stagger-children.visible > *:nth-child(5) { transition-delay: 0.5s; }
-  .stagger-children.visible > *:nth-child(6) { transition-delay: 0.6s; }
+  .stagger-children.visible > *:nth-child(1) { transition-delay: 80ms; }
+  .stagger-children.visible > *:nth-child(2) { transition-delay: 160ms; }
+  .stagger-children.visible > *:nth-child(3) { transition-delay: 240ms; }
+  .stagger-children.visible > *:nth-child(4) { transition-delay: 320ms; }
+  .stagger-children.visible > *:nth-child(5) { transition-delay: 400ms; }
+  .stagger-children.visible > *:nth-child(6) { transition-delay: 480ms; }
 
   .stagger-children.visible > * {
     opacity: 1;
     transform: translateY(0);
   }
 
-  /* Background Patterns */
+  /* ─── DS1 Badge System ─── */
+  .badge-success {
+    background: rgba(45,125,74,0.1);
+    color: #2D7D4A;
+    border: 1px solid rgba(45,125,74,0.2);
+  }
+  .badge-warning {
+    background: rgba(201,162,64,0.12);
+    color: #8B6A1A;
+    border: 1px solid rgba(201,162,64,0.2);
+  }
+  .badge-danger {
+    background: rgba(139,46,46,0.1);
+    color: #8B2E2E;
+    border: 1px solid rgba(139,46,46,0.2);
+  }
+  .badge-neutral {
+    background: var(--ghost);
+    color: var(--steel);
+    border: 1px solid var(--ghost);
+  }
+  .badge-empire {
+    background: var(--empire);
+    color: var(--platinum);
+    border: 1px solid var(--empire);
+  }
+  .badge-success,
+  .badge-warning,
+  .badge-danger,
+  .badge-neutral,
+  .badge-empire {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: var(--radius-sm);
+    font-weight: 500;
+  }
+
+  /* ─── DS1 Table System ─── */
+  .ds-table-wrap {
+    overflow: hidden;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--ghost);
+    background: var(--surface);
+  }
+  .ds-table th {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--steel);
+    opacity: 0.7;
+    padding: 12px 24px;
+    background: var(--mist);
+    border-bottom: 1px solid var(--ghost);
+    font-weight: 500;
+    text-align: left;
+  }
+  .ds-table td {
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--ghost);
+    color: var(--ink);
+  }
+  .ds-table tbody tr:hover {
+    background: var(--mist);
+  }
+  .ds-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  /* ─── DS1 Focus Ring (accessibility) ─── */
+  .focus-ring:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(13,24,41,0.08);
+    border-color: var(--empire);
+  }
+
+  /* ─── DS1 Input Focus (light + dark) ─── */
+  .ds-input:focus {
+    outline: none;
+    background: var(--surface);
+    border-color: var(--empire);
+    box-shadow: 0 0 0 3px rgba(13,24,41,0.08);
+  }
+  .dark .ds-input:focus {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px rgba(201,162,64,0.2);
+  }
+
+  /* ─── DS1 Dark Mode · Component Overrides ─── */
+
+  /* Buttons dark */
+  .dark .btn-primary {
+    background: var(--gold);
+    color: var(--void);
+    border-color: var(--gold);
+  }
+  .dark .btn-primary:hover {
+    background: #b8912e;
+    color: var(--void);
+    box-shadow: 0 8px 24px rgba(201,162,64,0.3);
+  }
+  .dark .btn-secondary {
+    color: var(--platinum);
+    border-color: var(--platinum);
+  }
+  .dark .btn-secondary:hover {
+    background: var(--platinum);
+    color: var(--void);
+  }
+  .dark .btn-ghost {
+    color: var(--platinum);
+  }
+  .dark .btn-ghost:hover {
+    background: rgba(255,255,255,0.06);
+    border-color: rgba(191,197,204,0.1);
+    color: #FFFFFF;
+  }
+  .dark .btn-danger {
+    color: #E07070;
+    border-color: #E07070;
+  }
+  .dark .btn-danger:hover {
+    background: #E07070;
+    color: #FFFFFF;
+  }
+  .dark .btn-gold:hover,
+  .dark .btn-premium:hover {
+    box-shadow: 0 8px 32px rgba(201,162,64,0.4);
+  }
+
+  /* Badges dark (DS1 §11) */
+  .dark .badge-success {
+    background: rgba(45,125,74,0.2);
+    color: #5CD688;
+    border-color: rgba(45,125,74,0.3);
+  }
+  .dark .badge-warning {
+    background: rgba(201,162,64,0.2);
+    color: #E8C26A;
+    border-color: rgba(201,162,64,0.3);
+  }
+  .dark .badge-danger {
+    background: rgba(139,46,46,0.2);
+    color: #E07070;
+    border-color: rgba(139,46,46,0.3);
+  }
+  .dark .badge-neutral {
+    background: rgba(191,197,204,0.1);
+    color: var(--platinum);
+    border-color: rgba(191,197,204,0.1);
+  }
+  .dark .badge-empire {
+    background: var(--void);
+    color: var(--platinum);
+    border-color: rgba(191,197,204,0.1);
+  }
+
+  /* Tables dark */
+  .dark .ds-table-wrap {
+    background: var(--empire);
+    border-color: rgba(191,197,204,0.1);
+  }
+  .dark .ds-table th {
+    background: var(--void);
+    border-color: rgba(191,197,204,0.1);
+    color: var(--platinum);
+  }
+  .dark .ds-table td {
+    border-color: rgba(191,197,204,0.08);
+    color: var(--platinum);
+  }
+  .dark .ds-table tbody tr:hover {
+    background: rgba(255,255,255,0.04);
+  }
+
+  /* Focus ring dark */
+  .dark .focus-ring:focus-visible {
+    box-shadow: 0 0 0 3px rgba(201,162,64,0.2);
+    border-color: var(--gold);
+  }
+
+  /* Gold gradient border dark */
+  .dark .border-gold-gradient {
+    background: linear-gradient(var(--empire), var(--empire)) padding-box,
+                linear-gradient(135deg, #C9A240, #e8c96d, #C9A240) border-box;
+  }
+
+  /* Card hover dark */
+  .dark .card-hover:hover {
+    box-shadow: 0 16px 48px rgba(0,0,0,0.3), 0 6px 16px rgba(0,0,0,0.2);
+  }
+
+  /* Section label — gold stays gold in dark, already correct */
+
+  /* ─── Background Patterns ─── */
   .grid-pattern {
     background-image:
-      linear-gradient(rgba(201, 169, 98, 0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(201, 169, 98, 0.03) 1px, transparent 1px);
+      linear-gradient(rgba(201, 162, 64, 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(201, 162, 64, 0.04) 1px, transparent 1px);
     background-size: 60px 60px;
   }
 }
 
-/* Scrollbar */
+/* ─── Film Grain Overlay (DS1) ─── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 128px 128px;
+}
+
+/* ─── Scrollbar (DS1) ─── */
 ::-webkit-scrollbar {
   width: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #0a0a0b;
+  background: var(--bone);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #27272a;
+  background: var(--ghost);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #c9a962;
+  background: var(--gold);
 }

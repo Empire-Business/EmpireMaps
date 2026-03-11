@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useImpersonation } from '@/contexts/ImpersonationContext'
+import { useEffectiveClientId } from '@/hooks/useEffectiveClientId'
 import { useAllDeliverables } from '@/hooks/useDeliverable'
 import { cn } from '@/lib/utils'
 import type { Database } from '@/integrations/supabase/types'
@@ -58,17 +59,17 @@ const STATUS_CONFIG: Record<DeliverableStatus, { label: string; icon: React.Elem
   locked: {
     label: 'Bloqueado',
     icon: Lock,
-    classes: 'bg-empire-surface text-empire-text/40 border border-empire-border',
+    classes: 'badge-neutral',
   },
   in_progress: {
     label: 'Em andamento',
     icon: Clock,
-    classes: 'bg-blue-500/10 text-blue-400 border border-blue-500/20',
+    classes: 'badge-warning',
   },
   published: {
     label: 'Publicado',
     icon: CheckCircle2,
-    classes: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20',
+    classes: 'badge-success',
   },
 }
 
@@ -87,19 +88,19 @@ function DeliverableCard({
     <Link
       to={deliverable.href}
       className={cn(
-        'flex items-center gap-4 p-4 border transition-colors group',
+        'flex items-center gap-4 p-4 rounded-lg border transition-all group',
         effectiveStatus === 'locked'
-          ? 'bg-empire-card border-empire-border opacity-60 pointer-events-none'
-          : 'bg-empire-card border-empire-border card-hover cursor-pointer'
+          ? 'bg-empire-surface border-empire-ghost opacity-60 pointer-events-none'
+          : 'bg-empire-surface border-empire-ghost card-hover cursor-pointer'
       )}
     >
       <div className="w-9 h-9 bg-empire-gold/10 flex items-center justify-center flex-shrink-0">
         <Icon className="w-4 h-4 text-empire-gold" />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-empire-text text-sm font-medium">{deliverable.label}</p>
+        <p className="text-empire-ink text-sm font-medium">{deliverable.label}</p>
       </div>
-      <span className={cn('text-xs px-2 py-1 flex items-center gap-1.5', classes)}>
+      <span className={cn('flex items-center gap-1.5', classes)}>
         <StatusIcon className="w-3 h-3" />
         {label}
       </span>
@@ -108,11 +109,11 @@ function DeliverableCard({
 }
 
 export default function ClientDashboard() {
-  const { user, profile } = useAuth()
+  const { profile } = useAuth()
   const { impersonatedClient } = useImpersonation()
+  const clientId = useEffectiveClientId()
 
   const effectiveProfile = impersonatedClient ?? profile
-  const clientId = effectiveProfile?.id ?? user?.id
 
   const { data: deliverables, isLoading } = useAllDeliverables(clientId)
 
@@ -127,11 +128,11 @@ export default function ClientDashboard() {
     <div className="p-8 space-y-8">
       {/* Welcome */}
       <div>
-        <p className="text-empire-gold text-sm tracking-widest uppercase mb-1">Seu Ambiente</p>
-        <h1 className="font-display text-3xl font-semibold text-empire-text">
+        <div className="section-label">Seu Ambiente</div>
+        <h1 className="font-display text-[2.5rem] font-bold text-empire-ink tracking-[-0.02em] leading-tight">
           Olá, {firstName}
         </h1>
-        <p className="text-empire-text/60 mt-1 text-sm">
+        <p className="text-empire-steel mt-2 text-base leading-relaxed">
           Acompanhe o progresso das suas entregas abaixo.
         </p>
       </div>
@@ -141,10 +142,10 @@ export default function ClientDashboard() {
         <div className="space-y-6">
           {[1, 2, 3].map((i) => (
             <div key={i} className="space-y-3">
-              <div className="h-5 w-40 bg-empire-card animate-pulse rounded" />
+              <div className="h-5 w-40 bg-empire-bone animate-pulse rounded" />
               <div className="space-y-2">
                 {[1, 2].map((j) => (
-                  <div key={j} className="h-16 bg-empire-card border border-empire-border animate-pulse" />
+                  <div key={j} className="h-16 bg-empire-bone border border-empire-ghost animate-pulse" />
                 ))}
               </div>
             </div>
@@ -154,7 +155,7 @@ export default function ClientDashboard() {
         <div className="space-y-8">
           {PHASES.map(({ phase, label, deliverables: phaseDeliverables }) => (
             <div key={phase}>
-              <h2 className="text-sm font-medium text-empire-text/60 uppercase tracking-wider mb-3">
+              <h2 className="font-mono text-[11px] font-medium text-empire-steel tracking-[0.12em] uppercase mb-3">
                 {label}
               </h2>
               <div className="space-y-2">

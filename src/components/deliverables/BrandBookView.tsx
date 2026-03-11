@@ -30,7 +30,7 @@ export interface BrandBookData {
 function VoiceExampleCard({ example }: { example: VoiceExample | string; index: number }) {
   if (typeof example === 'string') {
     return (
-      <div className="bg-empire-card border border-empire-border p-3 text-sm text-empire-text/70">
+      <div className="bg-empire-surface rounded-lg border border-empire-ghost p-3 text-sm text-empire-steel/80">
         {example}
       </div>
     )
@@ -48,7 +48,7 @@ function VoiceExampleCard({ example }: { example: VoiceExample | string; index: 
               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
               <span className="text-xs text-emerald-400 font-medium">Correto</span>
             </div>
-            <p className="text-empire-text/70 text-sm italic">&ldquo;{example.correct}&rdquo;</p>
+            <p className="text-empire-steel/80 text-sm italic">&ldquo;{example.correct}&rdquo;</p>
           </div>
         )}
         {hasAvoid && (
@@ -57,7 +57,7 @@ function VoiceExampleCard({ example }: { example: VoiceExample | string; index: 
               <XCircle className="w-3.5 h-3.5 text-red-400" />
               <span className="text-xs text-red-400 font-medium">Evitar</span>
             </div>
-            <p className="text-empire-text/70 text-sm italic">&ldquo;{example.avoid}&rdquo;</p>
+            <p className="text-empire-steel/80 text-sm italic">&ldquo;{example.avoid}&rdquo;</p>
           </div>
         )}
       </div>
@@ -66,7 +66,7 @@ function VoiceExampleCard({ example }: { example: VoiceExample | string; index: 
 
   const text = example.text ?? example.example ?? JSON.stringify(example)
   return (
-    <div className="bg-empire-card border border-empire-border p-3 text-sm text-empire-text/70">
+    <div className="bg-empire-surface rounded-lg border border-empire-ghost p-3 text-sm text-empire-steel/80">
       {text}
     </div>
   )
@@ -76,8 +76,8 @@ function VoiceSection({ title, voice }: { title: string; voice: Voice }) {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h3 className="font-medium text-empire-text">{title}</h3>
-        <span className="text-xs bg-empire-surface border border-empire-border text-empire-text/60 px-3 py-1">
+        <h3 className="font-medium text-empire-ink">{title}</h3>
+        <span className="text-xs bg-empire-mist border border-empire-ghost text-empire-steel/60 px-3 py-1">
           {voice.tone}
         </span>
       </div>
@@ -114,9 +114,9 @@ export function BrandBookView({ data }: BrandBookViewProps) {
     <div className="space-y-8">
       {/* Thesis */}
       {thesis && (
-        <div id="bb-thesis" className="bg-empire-card border border-empire-border p-6 scroll-mt-8">
-          <h2 className="font-display text-xl font-semibold text-empire-text mb-3">Tese da Marca</h2>
-          <p className="text-empire-text/70 leading-relaxed text-lg italic">&ldquo;{thesis}&rdquo;</p>
+        <div id="bb-thesis" className="bg-empire-surface rounded-lg border border-empire-ghost p-6 scroll-mt-8">
+          <h2 className="font-display text-xl font-semibold text-empire-ink mb-3">Tese da Marca</h2>
+          <p className="text-empire-steel/80 leading-relaxed text-lg italic">&ldquo;{thesis}&rdquo;</p>
         </div>
       )}
 
@@ -124,30 +124,30 @@ export function BrandBookView({ data }: BrandBookViewProps) {
       {archetype && (
         <div id="bb-archetype" className="border border-empire-gold/30 bg-empire-gold/5 p-6 scroll-mt-8">
           <p className="text-empire-gold text-xs tracking-widest uppercase mb-2">Arquétipo de Marca</p>
-          <h2 className="font-display text-3xl font-semibold text-empire-text">{archetype}</h2>
+          <h2 className="font-display text-[2.5rem] font-bold text-empire-ink tracking-[-0.02em] leading-tight">{archetype}</h2>
         </div>
       )}
 
       {/* Positioning */}
       {positioning && (
-        <div id="bb-positioning" className="bg-empire-card border border-empire-border p-6 scroll-mt-8">
-          <h2 className="font-display text-xl font-semibold text-empire-text mb-3">Posicionamento</h2>
-          <p className="text-empire-text/70 leading-relaxed">{positioning}</p>
+        <div id="bb-positioning" className="bg-empire-surface rounded-lg border border-empire-ghost p-6 scroll-mt-8">
+          <h2 className="font-display text-xl font-semibold text-empire-ink mb-3">Posicionamento</h2>
+          <p className="text-empire-steel/80 leading-relaxed">{positioning}</p>
         </div>
       )}
 
       {/* Voice */}
       {(written_voice || spoken_voice) && (
         <div id="bb-voice" className="space-y-6 scroll-mt-8">
-          <h2 className="font-display text-xl font-semibold text-empire-text">Tom de Voz</h2>
+          <h2 className="font-display text-xl font-semibold text-empire-ink">Tom de Voz</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {written_voice && (
-              <div className="bg-empire-card border border-empire-border p-5">
+              <div className="bg-empire-surface rounded-lg border border-empire-ghost p-5">
                 <VoiceSection title="Voz Escrita" voice={written_voice} />
               </div>
             )}
             {spoken_voice && (
-              <div className="bg-empire-card border border-empire-border p-5">
+              <div className="bg-empire-surface rounded-lg border border-empire-ghost p-5">
                 <VoiceSection title="Voz Falada" voice={spoken_voice} />
               </div>
             )}
@@ -158,17 +158,17 @@ export function BrandBookView({ data }: BrandBookViewProps) {
       {/* Key Messages */}
       {key_messages && key_messages.length > 0 && (
         <div id="bb-messages" className="scroll-mt-8">
-          <h2 className="font-display text-xl font-semibold text-empire-text mb-4">
+          <h2 className="font-display text-xl font-semibold text-empire-ink mb-4">
             Mensagens-Chave
           </h2>
           <div className="space-y-2">
             {key_messages.map((msg, i) => (
               <div
                 key={i}
-                className="flex gap-3 items-center bg-empire-card border border-empire-border px-5 py-3"
+                className="flex gap-3 items-center bg-empire-surface rounded-lg border border-empire-ghost px-5 py-3"
               >
                 <span className="text-empire-gold font-display text-sm flex-shrink-0">{i + 1}.</span>
-                <p className="text-empire-text/70 text-sm">{msg}</p>
+                <p className="text-empire-steel/80 text-sm">{msg}</p>
               </div>
             ))}
           </div>
@@ -179,11 +179,11 @@ export function BrandBookView({ data }: BrandBookViewProps) {
       {sections && sections.length > 0 && (
         <div className="space-y-6">
           {sections.map((section, i) => (
-            <div key={i} className="bg-empire-card border border-empire-border p-6">
-              <h2 className="font-display text-xl font-semibold text-empire-text mb-3">
+            <div key={i} className="bg-empire-surface rounded-lg border border-empire-ghost p-6">
+              <h2 className="font-display text-xl font-semibold text-empire-ink mb-3">
                 {section.title}
               </h2>
-              <p className="text-empire-text/70 leading-relaxed whitespace-pre-wrap">
+              <p className="text-empire-steel/80 leading-relaxed whitespace-pre-wrap">
                 {section.content}
               </p>
             </div>

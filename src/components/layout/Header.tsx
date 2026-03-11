@@ -1,11 +1,12 @@
 import { useRef, useState, useEffect } from 'react'
-import { LogOut, Menu, Camera, Search } from 'lucide-react'
+import { LogOut, Menu, Camera, Search, Sun, Moon } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '@/integrations/supabase/client'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { GlobalSearch } from '@/components/search/GlobalSearch'
+import { useDarkMode } from '@/hooks/useDarkMode'
 
 const ROLE_LABELS = {
   admin: 'Admin',
@@ -24,6 +25,7 @@ export function Header({ onMenuClick }: HeaderProps) {
   const [avatarMenuOpen, setAvatarMenuOpen] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
+  const { isDark, toggle: toggleTheme } = useDarkMode()
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -90,11 +92,11 @@ export function Header({ onMenuClick }: HeaderProps) {
   return (
     <>
     <GlobalSearch open={searchOpen} onClose={() => setSearchOpen(false)} />
-    <header className="h-16 bg-empire-surface border-b border-empire-border flex items-center justify-between px-4 lg:px-6">
+    <header className="h-16 backdrop-blur-[20px] border-b border-empire-ghost flex items-center justify-between px-4 lg:px-6 sticky top-0 z-30">
       {/* Hamburger — mobile only */}
       <button
         onClick={onMenuClick}
-        className="lg:hidden text-empire-text/50 hover:text-empire-text transition-colors p-1"
+        className="lg:hidden text-empire-ink/50 hover:text-empire-ink transition-colors p-1"
         aria-label="Abrir menu"
       >
         <Menu className="w-5 h-5" />
@@ -103,11 +105,11 @@ export function Header({ onMenuClick }: HeaderProps) {
       {/* Search trigger — desktop */}
       <button
         onClick={() => setSearchOpen(true)}
-        className="hidden lg:flex items-center gap-2 bg-empire-bg border border-empire-border px-3 py-1.5 text-sm text-empire-text/40 hover:text-empire-text/70 hover:border-empire-border/80 transition-colors"
+        className="hidden lg:flex items-center gap-2 bg-empire-mist border border-empire-ghost rounded-sm px-3 py-1.5 text-sm text-empire-ink/40 hover:text-empire-ink/70 hover:border-empire-ghost/80 transition-colors cursor-pointer"
       >
         <Search className="w-3.5 h-3.5" />
         <span>Buscar...</span>
-        <kbd className="flex items-center gap-0.5 text-xs bg-empire-surface border border-empire-border px-1.5 py-0.5 ml-4">
+        <kbd className="flex items-center gap-0.5 text-xs bg-empire-mist border border-empire-ghost px-1.5 py-0.5 ml-4">
           Ctrl K
         </kbd>
       </button>
@@ -116,10 +118,20 @@ export function Header({ onMenuClick }: HeaderProps) {
         {/* Search trigger — mobile */}
         <button
           onClick={() => setSearchOpen(true)}
-          className="lg:hidden text-empire-text/50 hover:text-empire-text transition-colors p-1"
+          className="lg:hidden text-empire-ink/50 hover:text-empire-ink transition-colors p-1"
           aria-label="Buscar"
         >
           <Search className="w-5 h-5" />
+        </button>
+
+        {/* Dark mode toggle */}
+        <button
+          onClick={toggleTheme}
+          className="p-1.5 rounded-sm text-empire-ink/50 hover:text-empire-ink dark:text-empire-platinum/50 dark:hover:text-white hover:bg-empire-mist dark:hover:bg-white/10 transition-colors"
+          aria-label={isDark ? 'Modo claro' : 'Modo escuro'}
+          title={isDark ? 'Modo claro' : 'Modo escuro'}
+        >
+          {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
         </button>
 
         {/* Avatar + name */}
@@ -145,7 +157,7 @@ export function Header({ onMenuClick }: HeaderProps) {
               )}
             </div>
             <div className="hidden sm:block text-left">
-              <p className="text-sm text-empire-text leading-none">
+              <p className="text-sm text-empire-ink leading-none">
                 {profile?.full_name ?? 'Usuário'}
               </p>
               {profile?.role && (
@@ -163,10 +175,10 @@ export function Header({ onMenuClick }: HeaderProps) {
                 className="fixed inset-0 z-10"
                 onClick={() => setAvatarMenuOpen(false)}
               />
-              <div className="absolute right-0 top-10 z-20 bg-empire-card border border-empire-border shadow-xl w-48 py-1">
+              <div className="absolute right-0 top-10 z-20 bg-empire-surface rounded-md border border-empire-ghost shadow-empire-lg w-48 py-1">
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-empire-text/70 hover:text-empire-text hover:bg-empire-surface transition-colors"
+                  className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-empire-ink/70 hover:text-empire-ink hover:bg-empire-mist transition-colors"
                 >
                   <Camera className="w-4 h-4" />
                   {uploading ? 'Enviando...' : 'Alterar foto'}
@@ -187,7 +199,7 @@ export function Header({ onMenuClick }: HeaderProps) {
         {/* Logout */}
         <button
           onClick={handleLogout}
-          className="flex items-center gap-1.5 text-empire-text/50 hover:text-empire-text/80 transition-colors text-sm"
+          className="flex items-center gap-1.5 text-empire-ink/50 hover:text-empire-ink/80 transition-colors text-sm"
           title="Sair"
         >
           <LogOut className="w-4 h-4" />

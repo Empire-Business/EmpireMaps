@@ -4,12 +4,19 @@ export type DeliverableType = 'risk_map' | 'brand_book' | 'editorial_line'
 export type DeliverableStatus = 'locked' | 'in_progress' | 'published'
 
 export type ContentCardStatus =
-  | 'ideia'
-  | 'em_producao'
-  | 'revisao'
+  | 'a_fazer'
+  | 'em_andamento'
+  | 'aprovacao'
+  | 'aprovado_final'
   | 'agendado'
   | 'publicado'
   | 'arquivado'
+
+export type StageTag =
+  | 'aguardando_roteiro'
+  | 'roteiro_aprovado'
+  | 'em_edicao'
+  | 'aprovado_final'
 
 export type ContentChannel =
   | 'instagram'
@@ -28,6 +35,8 @@ export interface Profile {
   role: UserRole
   full_name: string | null
   avatar_url: string | null
+  is_active: boolean
+  parent_client_id: string | null
   created_at: string
   updated_at: string
 }

@@ -49,7 +49,7 @@ export function DeliverableNav({ items }: DeliverableNavProps) {
   return (
     <nav className="hidden xl:block w-48 flex-shrink-0">
       <div className="sticky top-8 space-y-1">
-        <p className="text-xs text-empire-text/30 uppercase tracking-widest mb-3">Índice</p>
+        <p className="text-xs text-empire-steel/30 uppercase tracking-widest mb-3">Índice</p>
         {items.map((item) => (
           <button
             key={item.id}
@@ -58,7 +58,7 @@ export function DeliverableNav({ items }: DeliverableNavProps) {
               'w-full text-left text-xs px-3 py-1.5 border-l-2 transition-colors leading-snug',
               activeId === item.id
                 ? 'border-empire-gold text-empire-gold'
-                : 'border-transparent text-empire-text/40 hover:text-empire-text/70 hover:border-empire-border'
+                : 'border-transparent text-empire-steel/40 hover:text-empire-steel/80 hover:border-empire-ghost'
             )}
           >
             {item.label}

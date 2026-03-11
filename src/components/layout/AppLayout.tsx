@@ -12,7 +12,7 @@ export function AppLayout() {
   useRealtimeNotifications()
 
   return (
-    <div className={`flex min-h-screen bg-empire-bg ${isImpersonating ? 'pt-9' : ''}`}>
+    <div className={`flex min-h-screen bg-empire-bone ${isImpersonating ? 'pt-9' : ''}`}>
       <ImpersonationBanner />
 
       {/* Mobile overlay */}

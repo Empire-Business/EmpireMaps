@@ -60,15 +60,15 @@ export function ProductionMapUploader({ clientId }: ProductionMapUploaderProps) 
   }
 
   return (
-    <div className="bg-empire-card border border-empire-border p-5 space-y-3">
+    <div className="bg-empire-bone border border-empire-ghost p-5 space-y-3">
       <div className="flex items-center gap-2">
         <FileText className="w-4 h-4 text-empire-gold" />
-        <h3 className="text-sm font-medium text-empire-text">Importar Mapa de Produção</h3>
+        <h3 className="text-sm font-medium text-empire-ink">Importar Mapa de Produção</h3>
         <span className="text-xs bg-empire-gold/10 text-empire-gold px-2 py-0.5 border border-empire-gold/20">
           IA
         </span>
       </div>
-      <p className="text-xs text-empire-text/50">
+      <p className="text-xs text-empire-steel/50">
         Envie um arquivo .md e a IA criará os cards automaticamente no kanban.
       </p>
 
@@ -84,19 +84,19 @@ export function ProductionMapUploader({ clientId }: ProductionMapUploaderProps) 
         <button
           onClick={() => fileInputRef.current?.click()}
           className={cn(
-            'w-full border-2 border-dashed border-empire-border hover:border-empire-gold/40',
+            'w-full border-2 border-dashed border-empire-ghost hover:border-empire-gold/40',
             'py-6 flex flex-col items-center gap-2 transition-colors group'
           )}
         >
-          <Upload className="w-5 h-5 text-empire-text/30 group-hover:text-empire-gold/60 transition-colors" />
-          <p className="text-empire-text/60 text-sm">Selecionar arquivo .md</p>
+          <Upload className="w-5 h-5 text-empire-steel/30 group-hover:text-empire-gold/60 transition-colors" />
+          <p className="text-empire-steel/60 text-sm">Selecionar arquivo .md</p>
         </button>
       )}
 
       {state === 'loading' && (
         <div className="py-5 flex flex-col items-center gap-2">
           <Loader2 className="w-6 h-6 text-empire-gold animate-spin" />
-          <p className="text-empire-text/60 text-sm">Processando com IA...</p>
+          <p className="text-empire-steel/60 text-sm">Processando com IA...</p>
         </div>
       )}
 
@@ -122,8 +122,8 @@ export function ProductionMapUploader({ clientId }: ProductionMapUploaderProps) 
       {state === 'error' && (
         <div className="space-y-3">
           <div className="flex items-start gap-3 bg-red-500/10 border border-red-500/20 px-4 py-3">
-            <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
-            <p className="text-red-400 text-sm">{errorMsg ?? 'Erro ao processar.'}</p>
+            <AlertCircle className="w-4 h-4 text-empire-danger flex-shrink-0 mt-0.5" />
+            <p className="text-empire-danger text-sm">{errorMsg ?? 'Erro ao processar.'}</p>
           </div>
           <button
             onClick={() => { setState('idle'); setErrorMsg(null) }}

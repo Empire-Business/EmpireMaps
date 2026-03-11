@@ -111,11 +111,11 @@ export function MarkdownUploader({ clientId, type }: MarkdownUploaderProps) {
   const isAlreadyPublished = deliverable?.status === 'published'
 
   return (
-    <div className="bg-empire-card border border-empire-border p-5 space-y-3">
+    <div className="bg-empire-bone border border-empire-ghost p-5 space-y-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Upload className="w-4 h-4 text-empire-gold" />
-          <h3 className="text-sm font-medium text-empire-text">Upload de Markdown</h3>
+          <h3 className="text-sm font-medium text-empire-ink">Upload de Markdown</h3>
           <span className="text-xs bg-empire-gold/10 text-empire-gold px-2 py-0.5 border border-empire-gold/20">
             {profile?.role === 'admin' ? 'Admin' : 'Consultor'}
           </span>
@@ -141,21 +141,21 @@ export function MarkdownUploader({ clientId, type }: MarkdownUploaderProps) {
           <button
             onClick={handleClick}
             className={cn(
-              'w-full border-2 border-dashed border-empire-border hover:border-empire-gold/40',
+              'w-full border-2 border-dashed border-empire-ghost hover:border-empire-gold/40',
               'py-6 flex flex-col items-center gap-2 transition-colors group'
             )}
           >
-            <Upload className="w-6 h-6 text-empire-text/30 group-hover:text-empire-gold/60 transition-colors" />
+            <Upload className="w-6 h-6 text-empire-steel/30 group-hover:text-empire-gold/60 transition-colors" />
             <div className="text-center">
-              <p className="text-empire-text/60 text-sm">
+              <p className="text-empire-steel/60 text-sm">
                 {isAlreadyPublished ? 'Reenviar arquivo .md' : 'Clique para selecionar um arquivo .md'}
               </p>
-              <p className="text-empire-text/30 text-xs mt-0.5">Máximo 5MB</p>
+              <p className="text-empire-steel/30 text-xs mt-0.5">Máximo 5MB</p>
             </div>
           </button>
           <button
             onClick={() => setPasteMode(true)}
-            className="w-full flex items-center justify-center gap-2 py-2 text-xs text-empire-text/40 hover:text-empire-text/70 transition-colors border border-empire-border/50 hover:border-empire-border"
+            className="w-full flex items-center justify-center gap-2 py-2 text-xs text-empire-steel/40 hover:text-empire-steel/80 transition-colors border border-empire-ghost/50 hover:border-empire-ghost"
           >
             <FileText className="w-3.5 h-3.5" />
             Ou cole o texto diretamente
@@ -170,7 +170,7 @@ export function MarkdownUploader({ clientId, type }: MarkdownUploaderProps) {
             onChange={(e) => setPasteText(e.target.value)}
             placeholder="Cole o conteúdo em markdown aqui..."
             rows={10}
-            className="w-full bg-empire-surface border border-empire-border text-empire-text text-sm px-4 py-3 focus:outline-none focus:border-empire-gold/50 transition-colors resize-none font-mono"
+            className="w-full bg-empire-mist border border-empire-ghost text-empire-ink text-sm px-4 py-3 focus:outline-none focus:border-empire-gold/50 transition-colors resize-none font-mono"
           />
           <div className="flex gap-2">
             <button
@@ -193,15 +193,15 @@ export function MarkdownUploader({ clientId, type }: MarkdownUploaderProps) {
       {uploadState === 'uploading' && (
         <div className="py-6 flex flex-col items-center gap-2">
           <Loader2 className="w-6 h-6 text-empire-gold animate-spin" />
-          <p className="text-empire-text/60 text-sm">Enviando {fileName}...</p>
+          <p className="text-empire-steel/60 text-sm">Enviando {fileName}...</p>
         </div>
       )}
 
       {uploadState === 'processing' && (
         <div className="py-6 flex flex-col items-center gap-2">
           <Loader2 className="w-6 h-6 text-empire-gold animate-spin" />
-          <p className="text-empire-text/60 text-sm">Processando com IA...</p>
-          <p className="text-empire-text/30 text-xs">Isso pode levar alguns segundos</p>
+          <p className="text-empire-steel/60 text-sm">Processando com IA...</p>
+          <p className="text-empire-steel/30 text-xs">Isso pode levar alguns segundos</p>
         </div>
       )}
 
@@ -242,8 +242,8 @@ export function MarkdownUploader({ clientId, type }: MarkdownUploaderProps) {
       {uploadState === 'error' && (
         <div className="space-y-3">
           <div className="flex items-start gap-3 bg-red-500/10 border border-red-500/20 px-4 py-3">
-            <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
-            <p className="text-red-400 text-sm">{errorMsg ?? 'Erro ao processar arquivo.'}</p>
+            <AlertCircle className="w-4 h-4 text-empire-danger flex-shrink-0 mt-0.5" />
+            <p className="text-empire-danger text-sm">{errorMsg ?? 'Erro ao processar arquivo.'}</p>
           </div>
           <button
             onClick={() => { setUploadState('idle'); setErrorMsg(null) }}
@@ -256,8 +256,8 @@ export function MarkdownUploader({ clientId, type }: MarkdownUploaderProps) {
 
       {/* When deliverable is in_progress and we're in idle (e.g. refreshed page) */}
       {uploadState === 'idle' && deliverable?.status === 'in_progress' && deliverable.processed_json && (
-        <div className="space-y-3 border-t border-empire-border pt-3">
-          <p className="text-sm text-empire-text/60">
+        <div className="space-y-3 border-t border-empire-ghost pt-3">
+          <p className="text-sm text-empire-steel/60">
             Existe uma versão processada aguardando publicação.
           </p>
           <button
@@ -275,14 +275,14 @@ export function MarkdownUploader({ clientId, type }: MarkdownUploaderProps) {
       )}
       {/* Version history */}
       {versions && versions.length > 0 && (
-        <div className="border-t border-empire-border pt-3 space-y-2">
+        <div className="border-t border-empire-ghost pt-3 space-y-2">
           <div className="flex items-center gap-2">
-            <History className="w-3.5 h-3.5 text-empire-text/40" />
-            <span className="text-xs text-empire-text/40">Versões anteriores ({versions.length})</span>
+            <History className="w-3.5 h-3.5 text-empire-steel/40" />
+            <span className="text-xs text-empire-steel/40">Versões anteriores ({versions.length})</span>
           </div>
           <ul className="space-y-1">
             {versions.slice(0, 5).map((v) => (
-              <li key={v.id} className="text-xs text-empire-text/30 flex items-center justify-between">
+              <li key={v.id} className="text-xs text-empire-steel/30 flex items-center justify-between">
                 <span>v{v.version_number}</span>
                 <span>{formatDateTime(v.created_at)}</span>
               </li>

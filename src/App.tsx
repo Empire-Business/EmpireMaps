@@ -27,6 +27,8 @@ import EditorialLinePage from '@/pages/client/EditorialLinePage'
 import ProductionMapPage from '@/pages/client/ProductionMapPage'
 import DistributionMapPage from '@/pages/client/DistributionMapPage'
 import FormatLibraryPage from '@/pages/client/FormatLibraryPage'
+import SocialProfilesPage from '@/pages/client/SocialProfilesPage'
+import TeamPage from '@/pages/client/TeamPage'
 
 import NotFound from '@/pages/NotFound'
 
@@ -170,6 +172,22 @@ export default function App() {
                   element={
                     <ProtectedRoute allowedRoles={['client', 'consultant', 'admin']}>
                       <FormatLibraryPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/client/perfis-sociais"
+                  element={
+                    <ProtectedRoute allowedRoles={['client', 'consultant', 'admin']}>
+                      <SocialProfilesPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/client/equipe"
+                  element={
+                    <ProtectedRoute allowedRoles={['client', 'consultant', 'admin']}>
+                      <TeamPage />
                     </ProtectedRoute>
                   }
                 />

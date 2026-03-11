@@ -20,6 +20,7 @@ export type Database = {
           full_name: string | null
           avatar_url: string | null
           is_active: boolean
+          parent_client_id: string | null
           created_at: string
           updated_at: string
         }
@@ -29,6 +30,7 @@ export type Database = {
           full_name?: string | null
           avatar_url?: string | null
           is_active?: boolean
+          parent_client_id?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -38,6 +40,7 @@ export type Database = {
           full_name?: string | null
           avatar_url?: string | null
           is_active?: boolean
+          parent_client_id?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -178,16 +181,28 @@ export type Database = {
       content_cards: {
         Row: {
           id: string
+          content_id: string | null
           client_id: string
           title: string
           description: string | null
           channel: string | null
           format_id: string | null
           format_free: string | null
-          status: 'ideia' | 'em_producao' | 'revisao' | 'agendado' | 'publicado' | 'arquivado'
+          status: 'a_fazer' | 'em_andamento' | 'aprovacao' | 'aprovado_final' | 'agendado' | 'publicado' | 'arquivado'
+          stage_tag: 'aguardando_roteiro' | 'roteiro_aprovado' | 'em_edicao' | 'aprovado_final'
           production_date: string | null
           publish_date: string | null
           responsible: string | null
+          scriptwriter: string | null
+          editor_name: string | null
+          designer: string | null
+          poster_name: string | null
+          script_deadline: string | null
+          edit_deadline: string | null
+          source_file_url: string | null
+          final_format: string | null
+          destination_profiles: string[] | null
+          thumbnail_url: string | null
           labels: string[] | null
           internal_notes: string | null
           publish_url: string | null
@@ -198,16 +213,28 @@ export type Database = {
         }
         Insert: {
           id?: string
+          content_id?: string | null
           client_id: string
           title: string
           description?: string | null
           channel?: string | null
           format_id?: string | null
           format_free?: string | null
-          status?: 'ideia' | 'em_producao' | 'revisao' | 'agendado' | 'publicado' | 'arquivado'
+          status?: 'a_fazer' | 'em_andamento' | 'aprovacao' | 'aprovado_final' | 'agendado' | 'publicado' | 'arquivado'
+          stage_tag?: 'aguardando_roteiro' | 'roteiro_aprovado' | 'em_edicao' | 'aprovado_final'
           production_date?: string | null
           publish_date?: string | null
           responsible?: string | null
+          scriptwriter?: string | null
+          editor_name?: string | null
+          designer?: string | null
+          poster_name?: string | null
+          script_deadline?: string | null
+          edit_deadline?: string | null
+          source_file_url?: string | null
+          final_format?: string | null
+          destination_profiles?: string[] | null
+          thumbnail_url?: string | null
           labels?: string[] | null
           internal_notes?: string | null
           publish_url?: string | null
@@ -218,14 +245,26 @@ export type Database = {
         }
         Update: {
           title?: string
+          content_id?: string | null
           description?: string | null
           channel?: string | null
           format_id?: string | null
           format_free?: string | null
-          status?: 'ideia' | 'em_producao' | 'revisao' | 'agendado' | 'publicado' | 'arquivado'
+          status?: 'a_fazer' | 'em_andamento' | 'aprovacao' | 'aprovado_final' | 'agendado' | 'publicado' | 'arquivado'
+          stage_tag?: 'aguardando_roteiro' | 'roteiro_aprovado' | 'em_edicao' | 'aprovado_final'
           production_date?: string | null
           publish_date?: string | null
           responsible?: string | null
+          scriptwriter?: string | null
+          editor_name?: string | null
+          designer?: string | null
+          poster_name?: string | null
+          script_deadline?: string | null
+          edit_deadline?: string | null
+          source_file_url?: string | null
+          final_format?: string | null
+          destination_profiles?: string[] | null
+          thumbnail_url?: string | null
           labels?: string[] | null
           internal_notes?: string | null
           publish_url?: string | null
@@ -330,6 +369,42 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      client_social_profiles: {
+        Row: {
+          id: string
+          client_id: string
+          platform: string
+          handle: string
+          notes: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          client_id: string
+          platform: string
+          handle: string
+          notes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          platform?: string
+          handle?: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'client_social_profiles_client_id_fkey'
+            columns: ['client_id']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          },
+        ]
       }
       deliverable_versions: {
         Row: {
