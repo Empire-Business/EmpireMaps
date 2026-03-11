@@ -97,7 +97,7 @@
     --mist:       rgba(255,255,255,0.06); /* input bg, section variant */
     --steel:      #BFC5CC;  /* platinum — secondary text */
     --danger:     #E07070;  /* lighter red for dark bg */
-    --surface:    rgba(255,255,255,0.04); /* DS1 dark card bg */
+    --surface:    #0D1829; /* DS1 dark card bg — empire */
     --success:    #5CD688;  /* lighter green for dark bg */
     --warning-text: #E8C26A; /* lighter amber for dark bg */
 
