@@ -13,6 +13,8 @@ import {
   Library,
   BarChart3,
   ClipboardList,
+  AtSign,
+  UsersRound,
 } from 'lucide-react'
 
 const adminLinks = [
@@ -34,6 +36,8 @@ const clientLinks = [
   { to: '/client/mapa-producao', label: 'Mapa de Produção', icon: Calendar },
   { to: '/client/mapa-distribuicao', label: 'Mapa de Distribuição', icon: Share2 },
   { to: '/client/banco-formatos', label: 'Banco de Formatos', icon: Library },
+  { to: '/client/perfis-sociais', label: 'Perfis Sociais', icon: AtSign },
+  { to: '/client/equipe', label: 'Minha Equipe', icon: UsersRound },
 ]
 
 interface SidebarProps {
@@ -58,7 +62,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
       className={cn(
         // Desktop: always visible, static
         'lg:relative lg:translate-x-0 lg:flex lg:flex-col',
-        'w-64 min-h-screen bg-empire-surface border-r border-empire-border flex flex-col',
+        'w-64 min-h-screen bg-empire-void border-r border-white/10 flex flex-col',
         // Mobile: fixed overlay, slides in/out
         'fixed inset-y-0 left-0 z-30 transition-transform duration-200',
         open ? 'translate-x-0' : '-translate-x-full',
@@ -66,17 +70,20 @@ export function Sidebar({ open, onClose }: SidebarProps) {
       )}
     >
       {/* Logo */}
-      <div className="px-6 py-6 border-b border-empire-border flex items-center justify-between">
+      <div className="px-6 py-6 border-b border-white/10 flex items-center justify-between">
         <div>
-          <h1 className="font-display text-2xl font-semibold text-gold-gradient">Empire Maps</h1>
-          <p className="text-empire-text/40 text-xs tracking-widest uppercase mt-0.5">
+          <h1 className="font-display text-xl font-semibold text-white tracking-[0.22em] uppercase flex items-center gap-1.5">
+            EMPIRE MAPS
+            <span className="w-[5px] h-[5px] rounded-full bg-empire-gold inline-block" />
+          </h1>
+          <p className="text-empire-platinum/40 text-xs tracking-widest uppercase mt-0.5 font-mono">
             {isImpersonating ? 'Visualizando como Cliente' : effectiveRole === 'admin' ? 'Administrador' : effectiveRole === 'consultant' ? 'Consultor' : 'Cliente'}
           </p>
         </div>
         {/* Close button — mobile only */}
         <button
           onClick={onClose}
-          className="lg:hidden text-empire-text/40 hover:text-empire-text transition-colors"
+          className="lg:hidden text-empire-platinum/40 hover:text-white transition-colors"
         >
           <X className="w-5 h-5" />
         </button>
@@ -94,7 +101,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                 'flex items-center gap-3 px-3 py-2.5 text-sm transition-colors',
                 isActive
                   ? 'bg-empire-gold/10 text-empire-gold border-l-2 border-empire-gold'
-                  : 'text-empire-text/60 hover:text-empire-text hover:bg-empire-card border-l-2 border-transparent',
+                  : 'text-empire-platinum/60 hover:text-white hover:bg-white/10 border-l-2 border-transparent',
               )
             }
           >

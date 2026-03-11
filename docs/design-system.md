@@ -1,1301 +1,862 @@
-# Design System — Acelerador de Audiência
+# DS1 — Silver Empire · Design System
+**Version:** 2.0
+**Classification:** Editorial Cold — Institutional Power
+**Stack:** React 18 · TypeScript · Vite · Tailwind CSS v3 · shadcn/ui · Lucide React
 
-> Este documento define o sistema de design completo utilizado no projeto Acelerador de Audiência. Pode ser usado para construir qualquer tipo de aplicação, não apenas páginas web.
+> *"Um sistema de design construído para instituições que não precisam gritar. O poder está no espaço em branco. A autoridade está na tipografia."*
 
 ---
 
 ## Índice
 
-1. [Fundamentos Visuais](#1-fundamentos-visuais)
+1. [Filosofia & Princípios](#1-filosofia--princípios)
 2. [Sistema de Cores](#2-sistema-de-cores)
 3. [Tipografia](#3-tipografia)
-4. [Espaçamento e Layout](#4-espaçamento-e-layout)
-5. [Componentes UI](#5-componentes-ui)
-6. [Efeitos e Animações](#6-efeitos-e-animações)
-7. [Design Responsivo](#7-design-responsivo)
-8. [Ícones e SVGs](#8-ícones-e-svgs)
-9. [Padrões de Código](#9-padrões-de-código)
-10. [Implementação](#10-implementação)
+4. [Espaçamento](#4-espaçamento)
+5. [Elevação & Sombras](#5-elevação--sombras)
+6. [Border Radius](#6-border-radius)
+7. [Motion & Animações](#7-motion--animações)
+8. [Grid & Layout](#8-grid--layout)
+9. [Componentes](#9-componentes)
+10. [Texturas & Efeitos Visuais](#10-texturas--efeitos-visuais)
+11. [Regras Dark Mode](#11-regras-dark-mode)
+12. [Padrões & Anti-Padrões](#12-padrões--anti-padrões)
+13. [Tokens CSS Completos](#13-tokens-css-completos)
+14. [Mapeamento Tailwind](#14-mapeamento-tailwind)
 
 ---
 
-## 1. Fundamentos Visuais
+## 1. Filosofia & Princípios
 
-### 1.1 Filosofia do Design
+### Nome do Sistema
+**DS1 — Silver Empire**
+Subtítulo: *The Architecture of Authority*
 
-O design do Acelerador de Audiência transmite **autoridade, exclusividade e sofisticação**. A estética é inspirada em marcas premium de luxo, utilizando:
+### DNA Visual
+Silver Empire é um sistema editorial frio e institucional. Seu poder vem da contenção — grandes quantidades de espaço negativo, hierarquia tipográfica disciplinada, e ouro usado tão raramente que comanda atenção justamente por ser escasso.
 
-- **Fundos escuros** que criam profundidade e elegância
-- **Acentos dourados** que comunicam valor e prestígio
-- **Tipografia serifada** para títulos, evocando tradição e credibilidade
-- **Tipografia sans-serif** para corpo, garantindo legibilidade
-- **Espaçamentos generosos** que transmitem calma e organização
+### Referências Estéticas
 
-### 1.2 Princípios
+| Referência | O que emprestamos |
+|------------|-------------------|
+| Bloomberg Terminal | Densidade de dados, labels mono, contraste stark |
+| FT Weekend | Cormorant Garamond editorial, fundo ivory |
+| McKinsey Reports | Autoridade via white space, hierarquia estruturada |
+| Vercel | Painéis dark navy, texto platinum, minimalismo cirúrgico |
+| Linear | Precisão de motion, bordas ghost, fundos mist |
 
-| Princípio | Aplicação |
-|-----------|-----------|
-| **Hierarquia Clara** | Títulos grandes em Cormorant Garamond, corpo em DM Sans |
-| **Contraste Controlado** | Texto claro em fundo escuro com variações de opacidade |
-| **Consistência** | Mesmos padrões de bordas, sombras e transições em toda aplicação |
-| **Performance** | Uso de CSS puro para animações, carregamento otimizado de fontes |
-| **Acessibilidade** | Contraste mínimo de 4.5:1 para texto, estados de foco visíveis |
+### Três Princípios Fundamentais
+
+**1. Poder pelo Vazio**
+Espaço negativo não é ausência — é presença. Cada pixel de respiro reforça a gravidade do conteúdo. Layouts premium são 70%+ vazios. Resista ao impulso de preencher.
+
+**2. Tipografia como Estrutura**
+A hierarquia tipográfica dita a narrativa antes do usuário ler uma palavra. A fonte é a arquitetura. Cormorant Garamond carrega drama; DM Sans carrega significado; IBM Plex Mono carrega precisão. Nunca use-as de forma intercambiável.
+
+**3. Ouro com Parcimônia**
+O acento dourado aparece onde o olho deve pousar. Nunca decorativo. Sempre intencional. Ouro é usado para: labels eyebrow, linhas separadoras de seção, sobrescritos de métricas, dots de badges e gradientes de borda de painel. Nada mais.
 
 ---
 
 ## 2. Sistema de Cores
 
-### 2.1 Paleta Principal (Empire)
+### Paleta Raw
 
-A paleta é definida via Tailwind CSS e CSS Variables:
+| Token | Hex | RGB | Função |
+|-------|-----|-----|--------|
+| `--void` | `#070C14` | 7, 12, 20 | Escuro absoluto — seções mais profundas, base de sombra |
+| `--empire` | `#0D1829` | 13, 24, 41 | Navy escuro — painéis, cards, nav bg dark, button bg primário |
+| `--steel` | `#243B55` | 36, 59, 85 | Azul médio — nav links, subtexto, texto secundário |
+| `--platinum` | `#BFC5CC` | 191, 197, 204 | Cinza quente — texto body em dark mode, labels sutis |
+| `--gold` | `#C9A240` | 201, 162, 64 | Âmbar dourado — a única cor de acento do sistema |
+| `--bone` | `#F2EFE8` | 242, 239, 232 | Off-white quente — fundo primário |
+| `--ink` | `#1A1F2E` | 26, 31, 46 | Quase-preto — texto primário em fundos claros |
+| `--ghost` | `#E4E2DC` | 228, 226, 220 | Cinza claro quente — bordas, divisores, bg sutil |
+| `--mist` | `#F7F6F2` | 247, 246, 242 | Quase-branco — bg de seção alternativa, input bg, hover |
+| `--white` | `#FFFFFF` | 255, 255, 255 | Branco puro — fundo de cards, input focus |
+| `--danger` | `#8B2E2E` | 139, 46, 46 | Carmesim — erros, ações destrutivas |
 
-```javascript
-// Tailwind Config
-colors: {
-  empire: {
-    bg: '#0a0a0b',        // Fundo principal
-    surface: '#111113',   // Superfície elevada
-    card: '#18181b',      // Cards e containers
-    border: '#27272a',    // Bordas e divisores
-    text: '#fafafa',      // Texto principal
-    gold: '#c9a962',      // Dourado principal
-    goldLight: '#e4d4a5', // Dourado claro
-    goldDark: '#9a7b3c',  // Dourado escuro
-  }
-}
-```
+### Aliases Semânticos
 
-### 2.2 Variáveis CSS
+| Alias | Resolve Para | Uso |
+|-------|-------------|-----|
+| `--bg-primary` | `--bone` | Fundo padrão de página |
+| `--bg-inverse` | `--empire` | Fundo de seção/painel escuro |
+| `--text-primary` | `--ink` | Texto principal legível |
+| `--text-inverse` | `--platinum` | Texto em fundos escuros |
+| `--border` | `--ghost` | Borda/divisor padrão |
+| `--accent` | `--gold` | Acento dourado — todo uso de acento |
 
-```css
-:root {
-  --gold-gradient: linear-gradient(135deg, #c9a962 0%, #e4d4a5 50%, #c9a962 100%);
-  --gold-text: #c9a962;
-  --green-gradient: linear-gradient(135deg, #16a34a 0%, #22c55e 50%, #16a34a 100%);
-}
-```
+### Pareamentos Light
 
-### 2.3 Cores Semânticas
+| Camada | Fundo | Texto | Borda |
+|--------|-------|-------|-------|
+| Página | `--bone` `#F2EFE8` | `--ink` `#1A1F2E` | `--ghost` `#E4E2DC` |
+| Card | `--white` `#FFFFFF` | `--ink` `#1A1F2E` | `--ghost` `#E4E2DC` |
+| Input/campo | `--mist` `#F7F6F2` | `--ink` `#1A1F2E` | `--ghost` `#E4E2DC` |
+| Seção variante | `--mist` `#F7F6F2` | `--ink` `#1A1F2E` | `--ghost` `#E4E2DC` |
+| Subtexto | — | `--steel` `#243B55` | — |
+| Labels | — | `--gold` `#C9A240` | — |
 
-| Uso | Cor | Hex | Classe Tailwind |
-|-----|-----|-----|-----------------|
-| Fundo principal | Empire BG | `#0a0a0b` | `bg-empire-bg` |
-| Fundo secundário | Empire Surface | `#111113` | `bg-empire-surface` |
-| Cards/Painéis | Empire Card | `#18181b` | `bg-empire-card` |
-| Bordas | Empire Border | `#27272a` | `border-empire-border` |
-| Texto principal | Empire Text | `#fafafa` | `text-empire-text` |
-| Acento primário | Empire Gold | `#c9a962` | `text-empire-gold` |
-| Acento claro | Empire Gold Light | `#e4d4a5` | `text-empire-goldLight` |
-| Acento escuro | Empire Gold Dark | `#9a7b3c` | `text-empire-goldDark` |
+### Pareamentos Dark
 
-### 2.4 Cores de Estado
+| Camada | Fundo | Texto | Borda |
+|--------|-------|-------|-------|
+| Escuro profundo | `--void` `#070C14` | `--platinum` `#BFC5CC` | `rgba(191,197,204,0.1)` |
+| Painel dark | `--empire` `#0D1829` | `--white` `#FFFFFF` | `rgba(191,197,204,0.08)` |
+| Card dark | `rgba(255,255,255,0.04)` | `--white` | `rgba(191,197,204,0.1)` |
+| Input dark | `rgba(255,255,255,0.06)` | `--platinum` | `rgba(191,197,204,0.15)` |
+| Acento gold | sempre `--gold` `#C9A240` | — | — |
 
-| Estado | Cor | Hex | Uso |
-|--------|-----|-----|-----|
-| Sucesso | Emerald 400 | `#34d399` | Confirmações, checkmarks |
-| Sucesso (bg) | Emerald 900/10 | `rgba(6, 78, 59, 0.1)` | Fundos de sucesso |
-| Erro | Red 400 | `#f87171` | Erros, alertas negativos |
-| Erro (bg) | Red 900/10 | `rgba(127, 29, 29, 0.1)` | Fundos de erro |
+### Faça / Não Faça
 
-### 2.5 Variações de Opacidade
-
-```css
-/* Texto com opacidade */
-text-empire-text/90   /* rgba(250, 250, 250, 0.9) */
-text-empire-text/80   /* rgba(250, 250, 250, 0.8) */
-text-empire-text/70   /* rgba(250, 250, 250, 0.7) */
-text-empire-text/60   /* rgba(250, 250, 250, 0.6) */
-text-empire-text/50   /* rgba(250, 250, 250, 0.5) */
-
-/* Gold com opacidade */
-text-empire-gold/30   /* rgba(201, 169, 98, 0.3) */
-bg-empire-gold/5      /* rgba(201, 169, 98, 0.05) */
-bg-empire-gold/10     /* rgba(201, 169, 98, 0.1) */
-border-empire-gold/20 /* rgba(201, 169, 98, 0.2) */
-border-empire-gold/30 /* rgba(201, 169, 98, 0.3) */
-border-empire-gold/40 /* rgba(201, 169, 98, 0.4) */
-```
-
-### 6.6 Gradientes
-
-#### Gradiente Dourado (Texto)
-```css
-.text-gold-gradient {
-  background: linear-gradient(135deg, #c9a962 0%, #e4d4a5 50%, #c9a962 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-```
-
-#### Gradiente Dourado (Borda)
-```css
-.border-gold-gradient {
-  border: 1px solid transparent;
-  background: linear-gradient(#18181b, #18181b) padding-box,
-              linear-gradient(135deg, #c9a962, #e4d4a5, #c9a962) border-box;
-}
-```
-
-#### Gradiente Verde (Botões CTA)
-```css
-.btn-premium {
-  background: linear-gradient(135deg, #16a34a 0%, #22c55e 50%, #16a34a 100%);
-}
-```
-
-#### Gradientes de Fundo
-```css
-/* Gradiente dourado do canto */
-bg-gradient-to-br from-empire-gold/5 to-transparent
-
-/* Gradiente dourado do topo */
-bg-gradient-to-l from-empire-gold/5 to-transparent
-
-/* Gradiente linear vertical (hero) */
-background: linear-gradient(180deg, rgba(10,10,11,0.3) 0%, rgba(10,10,11,0.9) 70%, rgba(10,10,11,1) 100%);
-```
+| ✅ Faça | ❌ Não Faça |
+|---------|-----------|
+| Use `--bone` como fundo padrão | Use `--gold` como preenchimento de fundo |
+| Use `--ink` para texto primário em fundos claros | Use `--mist` ou `--ghost` para texto |
+| Use `--gold` para labels, linhas, sufixos de métricas | Use gold para fill de botão (exceto `.btn-gold`) |
+| Use `rgba(7,12,20,…)` para todas as cores de sombra | Use preto `#000` para sombras — é frio demais |
+| Platinum em dark, ink em light | Troque ink/platinum entre contextos |
 
 ---
 
 ## 3. Tipografia
 
-### 3.1 Famílias Tipográficas
+### Stack de Fontes
 
-#### Display (Títulos)
-```css
-font-family: 'Cormorant Garamond', serif;
-```
-- **Uso**: Títulos principais, headlines, números destacados
-- **Pesos disponíveis**: 400 (Regular), 500 (Medium), 600 (SemiBold), 700 (Bold)
-- **Estilos**: Normal e Itálico
+| Função | Família | Fallback | Google Fonts |
+|--------|---------|----------|-------------|
+| Display | Cormorant Garamond | Georgia, serif | `family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600` |
+| Body | DM Sans | system-ui, sans-serif | `family=DM+Sans:wght@300;400;500;600` |
+| Mono | IBM Plex Mono | 'Courier New', monospace | `family=IBM+Plex+Mono:wght@400;500` |
 
-#### Body (Corpo)
-```css
-font-family: 'DM Sans', sans-serif;
-```
-- **Uso**: Texto de corpo, navegação, botões, labels
-- **Pesos disponíveis**: 300 (Light), 400 (Regular), 500 (Medium), 600 (SemiBold)
-- **Estilos**: Normal e Itálico
-
-### 3.2 Carregamento de Fontes
+### Import URL do Google Fonts
 
 ```html
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600&family=DM+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 ```
 
-### 3.3 Escala Tipográfica
+### Escala Tipográfica
 
-| Elemento | Tamanho Mobile | Tamanho Desktop | Fonte | Peso | Classe |
-|----------|----------------|-----------------|-------|------|--------|
-| H1 Hero | `text-3xl` (1.875rem) | `lg:text-6xl` (3.75rem) | Display | 600 | `font-display text-3xl lg:text-6xl font-semibold` |
-| H2 Seção | `text-3xl` (1.875rem) | `lg:text-5xl` (3rem) | Display | 400 | `font-display text-3xl lg:text-5xl` |
-| H3 Card | `text-xl` (1.25rem) | - | Body | 500 | `text-xl font-medium` |
-| H4 Subtítulo | `text-lg` (1.125rem) | - | Body | 500 | `text-lg font-medium` |
-| Body Large | `text-xl` (1.25rem) | - | Body | 300 | `text-xl font-light` |
-| Body | `text-base` (1rem) | - | Body | 400 | `text-base` |
-| Body Small | `text-sm` (0.875rem) | - | Body | 400 | `text-sm` |
-| Caption | `text-xs` (0.75rem) | - | Body | 400 | `text-xs` |
-| Label/Uppercase | `text-sm` (0.875rem) | - | Body | 400 | `text-sm tracking-widest uppercase` |
+| Token | px | rem | Função |
+|-------|----|-----|--------|
+| `--text-11` | 11px | 0.6875rem | Labels eyebrow, mono caps, badge, headers de tabela |
+| `--text-13` | 13px | 0.8125rem | Nav links, captions, body secundário, mono code |
+| `--text-16` | 16px | 1rem | Texto body base, inputs |
+| `--text-20` | 20px | 1.25rem | Lead text, manifesto, sub-headlines |
+| `--text-28` | 28px | 1.75rem | Títulos de card, headings de grupo |
+| `--text-40` | 40px | 2.5rem | Subtítulos de seção, headings médios |
+| `--text-56` | 56px | 3.5rem | Títulos de seção (h2) |
+| `--text-80` | 80px | 5rem | Números de métricas em cards |
+| `--text-120` | 120px | 7.5rem | Número de métrica hero |
 
-### 3.4 Line Height
+### Guia de Pesos
 
-| Uso | Valor | Classe |
-|-----|-------|--------|
-| Títulos | 1.25 | `leading-tight` |
-| Corpo | 1.5 | `leading-normal` |
-| Texto longo | 1.625 | `leading-relaxed` |
-| Hero título | 1.2 | `leading-tight` |
+**Cormorant Garamond** (somente display — nunca parágrafos de body)
 
-### 3.5 Letter Spacing
+| Peso | Estilo | Uso |
+|------|--------|-----|
+| 300 | normal | Headings sutis, variante light |
+| 300 | italic | Hero título light, voz editorial |
+| 400 | normal | Display specimen |
+| 400 | italic | Citações editoriais |
+| 600 | normal | Títulos de seção, títulos de card |
+| 700 | normal | Hero título bold, números de métricas |
 
-| Uso | Valor | Classe |
-|-----|-------|--------|
-| Labels/Uppercase | 0.1em | `tracking-widest` |
-| Botões | 0.03em | `tracking-wide` |
-| Títulos | -0.025em | `tracking-tight` |
-| Normal | 0 | default |
+**DM Sans** (body, UI, captions — nunca headings display)
 
-### 3.6 Exemplos de Uso
+| Peso | Uso |
+|------|-----|
+| 300 | Texto manifesto, body longo |
+| 400 | Body padrão, células de tabela |
+| 500 | Nav links, labels, form labels |
+| 600 | Botões, nav CTA, texto UI strong |
 
-```html
-<!-- Título Hero -->
-<h1 class="font-display text-3xl md:text-5xl lg:text-6xl font-semibold tracking-tight leading-tight">
-  <span class="text-gold-gradient">Texto Dourado</span>
-  <span class="text-empire-text">Texto Normal</span>
-</h1>
+**IBM Plex Mono** (labels, tokens, metadata — nunca body)
 
-<!-- Subtítulo -->
-<p class="text-xl md:text-2xl text-empire-text/90 font-light">
-  Subtítulo com peso leve
-</p>
+| Peso | Uso |
+|------|-----|
+| 400 | Amostras de código mono, display de tokens |
+| 500 | Labels de seção, headers de tabela, texto de badge |
 
-<!-- Label -->
-<p class="text-empire-gold text-sm tracking-widest uppercase mb-4">
-  Seção
-</p>
+### Letter-Spacing
 
-<!-- Body -->
-<p class="text-empire-text/80 text-lg leading-relaxed">
-  Texto de corpo com opacidade
-</p>
+| Contexto | Valor | Exemplo |
+|----------|-------|---------|
+| Display headings (Cormorant bold) | `-0.03em` | Hero título bold |
+| Display headings (Cormorant light) | `-0.02em` | Hero título light |
+| Display grande (120px+) | `-0.04em` | Ghost word, números de métricas |
+| Títulos de seção | `-0.02em` | h2 section title |
+| Nav logo | `+0.22em` | EMPIRE logotype |
+| Mono eyebrow labels | `+0.18em` a `+0.20em` | Labels de seção |
+| Mono badge/headers tabela | `+0.12em` a `+0.16em` | Badge text, th |
+| Body text (DM Sans) | `0` (default) | Parágrafos |
+| Nav links | `+0.06em` | Navegação |
+
+### Line-Height
+
+| Contexto | Valor |
+|----------|-------|
+| Display headings | `1.0` |
+| Títulos de card | `1.2` |
+| Subtítulos de seção | `1.6` |
+| Parágrafos body | `1.6` a `1.7` |
+| Manifesto/lead text | `1.7` |
+| Métricas / números | `1.0` |
+| Mono labels | inherited |
+
+### Padrões de Uso
+
+**Label eyebrow:**
+```css
+font-family: var(--font-mono);
+font-size: var(--text-11);
+letter-spacing: 0.18em;
+text-transform: uppercase;
+color: var(--gold);
+/* Sempre precedido por uma linha gold horizontal de 24px (::before) */
+```
+
+**Título de seção (h2):**
+```css
+font-family: var(--font-display);
+font-size: var(--text-56);
+font-weight: 700;
+letter-spacing: -0.02em;
+line-height: 1.05;
+color: var(--ink);
+```
+
+**Hero título — split dramático:**
+```css
+/* Metade light italic */
+font-family: var(--font-display);
+font-size: clamp(64px, 7.5vw, 110px);
+font-weight: 300;
+font-style: italic;
+color: var(--steel);
+letter-spacing: -0.02em;
+
+/* Metade bold */
+font-family: var(--font-display);
+font-size: clamp(64px, 7.5vw, 110px);
+font-weight: 700;
+color: var(--ink);
+letter-spacing: -0.03em;
+```
+
+**Parágrafo body:**
+```css
+font-family: var(--font-body);
+font-size: var(--text-16);
+font-weight: 300; /* ou 400 */
+color: var(--steel);
+line-height: 1.6;
+```
+
+**Número de métrica:**
+```css
+font-family: var(--font-display);
+font-size: var(--text-80);
+font-weight: 700;
+letter-spacing: -0.04em;
+line-height: 1;
+color: var(--ink); /* ou --white em painéis dark */
+/* Sufixo da unidade: font-size: 0.3em; font-weight: 300; color: var(--gold); font-style: italic; vertical-align: super; */
 ```
 
 ---
 
-## 4. Espaçamento e Layout
+## 4. Espaçamento
 
-### 4.1 Container Principal
+Base-4 scale. Não use valores arbitrários fora dessa escala.
 
-```html
-<div class="max-w-6xl mx-auto px-6 lg:px-8">
-  <!-- Conteúdo -->
-</div>
+### Escala
+
+| Token | px | rem | Uso Típico |
+|-------|----|-----|------------|
+| `--s4` | 4px | 0.25rem | Micro gap, margem de dot |
+| `--s8` | 8px | 0.5rem | Gap de ícone, stack apertado, gap de badge |
+| `--s16` | 16px | 1rem | Gap padrão, espaço de grupo de form |
+| `--s24` | 24px | 1.5rem | Sub-seções de card, margem de label |
+| `--s32` | 32px | 2rem | Padding de card, espaçamento de grupo |
+| `--s48` | 48px | 3rem | Padding lateral de container, gap vertical grande |
+| `--s64` | 64px | 4rem | Margin-bottom de header de seção, altura do nav |
+| `--s96` | 96px | 6rem | Padding vertical de seção (top + bottom) |
+| `--s128` | 128px | 8rem | Reservado para layouts oversized |
+
+### Padding de Seção
+
+Cada seção major usa:
+```css
+padding: var(--s96) 0;   /* 96px top and bottom */
 ```
 
-| Propriedade | Valor | Descrição |
-|-------------|-------|-----------|
-| Largura máxima | `max-w-6xl` | 1152px |
-| Largura máxima (nav) | `max-w-7xl` | 1280px |
-| Padding horizontal | `px-6` | 24px mobile |
-| Padding horizontal (lg) | `lg:px-8` | 32px desktop |
-| Margem | `mx-auto` | Centralizado |
+### Padding Interno de Componentes
 
-### 4.2 Espaçamento Vertical (Seções)
-
-| Elemento | Padding Mobile | Padding Desktop |
-|----------|----------------|-----------------|
-| Seção padrão | `py-24` (96px) | `md:py-32` (128px) |
-| Header/Nav | `h-20` (80px) | - |
-
-### 4.3 Grid System
-
-#### Grid de Cards
-```html
-<!-- Grid 3 colunas -->
-<div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-  <!-- Cards -->
-</div>
-
-<!-- Grid 2 colunas -->
-<div class="grid md:grid-cols-2 gap-6">
-  <!-- Cards -->
-</div>
-
-<!-- Grid 12 colunas (layout complexo) -->
-<div class="grid lg:grid-cols-12 gap-8 lg:gap-12">
-  <div class="lg:col-span-7">...</div>
-  <div class="lg:col-span-5">...</div>
-</div>
-```
-
-#### Grid de Imagens
-```html
-<!-- Grid de logos -->
-<div class="grid grid-cols-2 md:grid-cols-5 lg:grid-cols-6 gap-6 md:gap-8">
-  <!-- Logos -->
-</div>
-
-<!-- Grid de clientes -->
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-  <!-- Cards de cliente -->
-</div>
-```
-
-### 4.4 Gap Values
-
-| Classe | Valor | Uso |
-|--------|-------|-----|
-| `gap-3` | 12px | Elementos internos |
-| `gap-4` | 16px | Lists, grupos pequenos |
-| `gap-5` | 20px | Cards de cliente |
-| `gap-6` | 24px | Cards padrão |
-| `gap-8` | 32px | Seções internas |
-| `gap-10` | 40px | Elementos hero |
-| `gap-12` | 48px | Layout principal |
-
-### 4.5 Padding de Cards
-
-| Tipo | Padding | Classe |
-|------|---------|--------|
-| Card padrão | 32px | `p-8` |
-| Card pequeno | 24px | `p-6` |
-| Card interno | 20px | `p-5` |
-| Card compacto | 16px | `p-4` |
+| Componente | Padding |
+|------------|---------|
+| Card (standard/dark/metric) | `var(--s32)` todos os lados (32px) |
+| Manifesto card | `var(--s32)` todos os lados |
+| Hero panel | `var(--s48)` todos os lados |
+| Form showcase | `var(--s48)` todos os lados |
+| Button SM | `7px 14px` |
+| Button MD | `10px 20px` |
+| Button LG | `14px 28px` |
+| Button XL | `16px 36px` |
+| Badge | `4px 10px` |
+| Input | `10px 14px` |
+| Nav CTA | `9px 20px` |
+| Table `th` | `12px 24px` |
+| Table `td` | `16px 24px` |
 
 ---
 
-## 5. Componentes UI
+## 5. Elevação & Sombras
 
-### 5.1 Botões
+Cor de sombra sempre derivada de `--void` (`#070C14` = `rgba(7,12,20,…)`). Nunca use preto puro.
 
-#### Botão Primário (CTA)
-```html
-<a href="#" class="btn-premium inline-flex items-center gap-3 text-lg tracking-wide">
-  APLICAR AGORA
-  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
-  </svg>
-</a>
-```
+### Escala de Sombras
 
-```css
-.btn-premium {
-  background: linear-gradient(135deg, #16a34a 0%, #22c55e 50%, #16a34a 100%);
-  color: #ffffff;
-  font-weight: 700;
-  padding: 1rem 2.5rem;
-  border-radius: 2px;
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
-  box-shadow: 0 4px 20px rgba(34, 197, 94, 0.35);
-  letter-spacing: 0.03em;
-}
+| Token | Valor CSS | Uso |
+|-------|-----------|-----|
+| `--shadow-sm` | `0 1px 3px rgba(7,12,20,0.08), 0 1px 2px rgba(7,12,20,0.04)` | Lift sutil — suplemento de borda padrão |
+| `--shadow-md` | `0 4px 16px rgba(7,12,20,0.10), 0 2px 6px rgba(7,12,20,0.06)` | Button hover, toast, popover pequeno |
+| `--shadow-lg` | `0 16px 48px rgba(7,12,20,0.14), 0 6px 16px rgba(7,12,20,0.08)` | Card hover, modais, dropdowns |
+| `--shadow-xl` | `0 32px 80px rgba(7,12,20,0.20), 0 12px 32px rgba(7,12,20,0.12)` | Hero panel, card flagship |
 
-.btn-premium::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
-  transition: left 0.5s ease;
-}
+### Regras de Uso
 
-.btn-premium:hover::before {
-  left: 100%;
-}
-
-.btn-premium:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 40px rgba(34, 197, 94, 0.5);
-}
-```
-
-#### Botão Secundário
-```html
-<a href="#" class="btn-secondary text-sm tracking-wide">
-  APLICAR AGORA
-</a>
-```
-
-```css
-.btn-secondary {
-  background: transparent;
-  border: 1px solid #c9a962;
-  color: #c9a962;
-  padding: 1rem 2.5rem;
-  border-radius: 2px;
-  transition: all 0.3s ease;
-}
-
-.btn-secondary:hover {
-  background: rgba(201, 169, 98, 0.1);
-  transform: translateY(-2px);
-}
-```
-
-### 5.2 Cards
-
-#### Card Padrão
-```html
-<div class="card-hover bg-empire-card p-8 border border-empire-border hover:border-empire-gold/30">
-  <div class="w-12 h-12 rounded-lg bg-empire-gold/10 flex items-center justify-center mb-6">
-    <!-- Ícone -->
-  </div>
-  <h3 class="text-xl font-medium mb-3 text-empire-text">Título</h3>
-  <p class="text-empire-text/70 mb-4">Descrição do card.</p>
-  <p class="text-empire-gold text-sm italic">"Citação ou destaque"</p>
-</div>
-```
-
-```css
-.card-hover {
-  transition: all 0.4s ease;
-}
-
-.card-hover:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 20px 60px rgba(0,0,0,0.4);
-}
-```
-
-#### Card com Borda Dourada
-```html
-<div class="border-gold-gradient bg-empire-card p-8">
-  <!-- Conteúdo -->
-</div>
-```
-
-#### Card de Cliente
-```html
-<div class="client-card group relative overflow-hidden rounded-lg border border-empire-border bg-empire-card cursor-default">
-  <div class="relative overflow-hidden">
-    <img src="..." alt="..." class="w-full h-auto block transition-transform duration-700 group-hover:scale-105" loading="lazy">
-    <div class="absolute inset-0 bg-gradient-to-t from-empire-card via-transparent to-transparent opacity-0 group-hover:opacity-60 transition-opacity duration-500"></div>
-  </div>
-  <div class="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-empire-goldDark via-empire-gold to-empire-goldLight transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></div>
-</div>
-```
-
-```css
-.client-card {
-  transition: all 0.4s ease;
-}
-
-.client-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-}
-```
-
-#### Card de Fase (Metodologia)
-```html
-<div class="bg-gradient-to-br from-empire-gold/5 to-transparent border border-empire-gold/20 p-8 rounded-lg fade-in-up">
-  <div class="flex items-center gap-4 mb-6">
-    <div class="w-12 h-12 rounded-lg bg-empire-gold/10 flex items-center justify-center flex-shrink-0">
-      <span class="text-2xl font-display text-gold-gradient">01</span>
-    </div>
-    <div>
-      <h3 class="text-xl font-medium text-empire-text">Fase 1 — Título</h3>
-      <p class="text-empire-text/70 text-sm">Subtítulo da fase</p>
-    </div>
-  </div>
-  <!-- Conteúdo -->
-</div>
-```
-
-### 5.3 Badges e Tags
-
-#### Badge de Status
-```html
-<div class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-empire-gold/30 bg-empire-gold/5 mb-8">
-  <span class="w-2 h-2 bg-empire-gold rounded-full animate-pulse"></span>
-  <span class="text-empire-gold text-sm tracking-widest uppercase">Vagas Limitadas</span>
-</div>
-```
-
-#### Badge de Programa
-```html
-<span class="text-empire-gold text-xs tracking-widest uppercase font-medium px-4 py-2 border border-empire-gold/30 rounded-full bg-empire-gold/5">
-  Programa 1 — Entrada
-</span>
-```
-
-### 5.4 Navegação
-
-#### Navbar Desktop
-```html
-<nav class="fixed top-0 left-0 right-0 z-50 bg-empire-bg/80 backdrop-blur-md border-b border-empire-border">
-  <div class="max-w-7xl mx-auto px-6 lg:px-8">
-    <div class="flex items-center justify-between h-20">
-      <a href="#" class="flex items-center">
-        <img src="logo.webp" alt="Logo" class="h-10 w-auto">
-      </a>
-      <div class="hidden md:flex items-center space-x-8">
-        <a href="#" class="text-empire-text/70 hover:text-empire-gold transition-colors text-sm tracking-wide">Link</a>
-        <!-- Mais links -->
-      </div>
-      <div class="hidden md:block">
-        <a href="#" class="btn-secondary text-sm tracking-wide">CTA</a>
-      </div>
-      <!-- Mobile menu button -->
-    </div>
-  </div>
-</nav>
-```
-
-#### Menu Mobile
-```html
-<div id="mobile-menu" class="mobile-menu fixed inset-y-0 right-0 w-72 bg-empire-surface border-l border-empire-border md:hidden">
-  <div class="p-6">
-    <button id="close-menu-btn" class="absolute top-6 right-6 text-empire-text/70">
-      <!-- Ícone X -->
-    </button>
-    <div class="mt-12 flex flex-col space-y-6">
-      <a href="#" class="text-empire-text hover:text-empire-gold transition-colors">Link</a>
-      <!-- Mais links -->
-      <div class="pt-6 border-t border-empire-border">
-        <a href="#" class="btn-premium block text-center text-sm">CTA</a>
-      </div>
-    </div>
-  </div>
-</div>
-```
-
-```css
-.mobile-menu {
-  transform: translateX(100%);
-  transition: transform 0.3s ease;
-}
-
-.mobile-menu.active {
-  transform: translateX(0);
-}
-```
-
-### 5.5 FAQ Accordion
-
-```html
-<div class="faq-item border-empire-border">
-  <div class="faq-question flex items-center justify-between py-6" onclick="toggleFaq(this)">
-    <h3 class="text-lg font-medium pr-4 text-empire-text">Pergunta?</h3>
-    <span class="faq-icon text-empire-gold text-2xl flex-shrink-0">+</span>
-  </div>
-  <div class="faq-answer text-empire-text/80">
-    <p>Resposta da pergunta...</p>
-  </div>
-</div>
-```
-
-```css
-.faq-item {
-  border-bottom: 1px solid rgba(201, 169, 98, 0.1);
-}
-
-.faq-question {
-  cursor: pointer;
-  transition: color 0.3s ease;
-}
-
-.faq-question:hover {
-  color: #c9a962;
-}
-
-.faq-answer {
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height 0.4s ease, padding 0.4s ease;
-}
-
-.faq-item.active .faq-answer {
-  max-height: 500px;
-  padding-bottom: 1.5rem;
-}
-
-.faq-item.active .faq-icon {
-  transform: rotate(45deg);
-}
-
-.faq-icon {
-  transition: transform 0.3s ease;
-}
-```
-
-### 5.6 Tabelas
-
-```html
-<div class="overflow-x-auto">
-  <table class="w-full border-collapse">
-    <thead>
-      <tr>
-        <th class="text-left p-4 border-b border-empire-border text-empire-text/60 font-normal text-sm">Coluna 1</th>
-        <th class="text-left p-4 border-b border-empire-border text-empire-gold font-medium">Coluna 2</th>
-      </tr>
-    </thead>
-    <tbody class="text-empire-text">
-      <tr class="border-b border-empire-border/50">
-        <td class="p-4 text-empire-text/60">Valor 1</td>
-        <td class="p-4"><span class="text-empire-gold">Valor 2</span></td>
-      </tr>
-    </tbody>
-  </table>
-</div>
-```
-
-### 5.7 Footer
-
-```html
-<footer class="py-12 bg-empire-bg border-t border-empire-border">
-  <div class="max-w-6xl mx-auto px-6 lg:px-8">
-    <div class="flex flex-col md:flex-row items-center justify-between gap-6">
-      <div class="flex items-center gap-4">
-        <img src="logo.webp" alt="Logo" class="h-8 w-auto" loading="lazy">
-      </div>
-      <div class="flex items-center gap-6 text-empire-text/70 text-sm">
-        <a href="#" class="hover:text-empire-gold transition-colors">Link</a>
-        <span class="text-empire-border">|</span>
-        <a href="#" class="hover:text-empire-gold transition-colors">Link</a>
-      </div>
-      <p class="text-empire-text/70 text-sm">© 2026 Empresa. Todos os direitos reservados.</p>
-    </div>
-  </div>
-</footer>
-```
-
-### 5.8 Cards de Estatísticas
-
-```html
-<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-  <div class="text-center p-8 border-gold-gradient">
-    <p class="text-4xl md:text-5xl font-display text-gold-gradient mb-2">+30M</p>
-    <p class="text-empire-text/70 text-sm tracking-wide uppercase">pessoas alcançadas</p>
-  </div>
-  <!-- Mais estatísticas -->
-</div>
-```
+- **Estado default:** cards não têm sombra — apenas borda `1px` (`--ghost`). Sombra aparece no hover (`--shadow-lg`).
+- **Button hover:** `--shadow-md`
+- **Hero dark panel:** `--shadow-xl` (permanente)
+- **Toast:** `--shadow-lg`
+- **Gold glow (btn-gold only):** `0 8px 24px rgba(201,162,64,0.3)`
 
 ---
 
-## 6. Efeitos e Animações
+## 6. Border Radius
 
-### 6.1 Fade In Up (Scroll Animation)
+| Token | px | Uso |
+|-------|----|-----|
+| `--radius-sm` | 3px | Botões, badges, inputs, checkboxes |
+| `--radius-md` | 6px | Cards pequenos, swatches, toast, motion dots |
+| `--radius-lg` | 12px | Cards principais, painéis, wrappers de tabela |
 
-```html
-<div class="fade-in-up">
-  <!-- Conteúdo que aparece ao scroll -->
-</div>
-```
+### Regras
+
+- Nunca use `--radius-lg` em elementos interativos pequenos
+- Wrappers de tabela usam `--radius-lg` + `overflow: hidden`
+- Toggles usam `12px` (metade da altura de 24px) para pill shape
+- Radio inputs usam `border-radius: 50%`
+
+---
+
+## 7. Motion & Animações
+
+### Filosofia
+Todas as animações usam apenas `transform` e `opacity`. Nunca anime `width`, `height`, `top`, `left`, `margin`, ou `color` — causam layout thrashing.
+
+### Curvas de Easing
+
+| Token | Cubic Bezier | Sensação | Uso |
+|-------|-------------|----------|-----|
+| `--ease-out` | `cubic-bezier(0.0, 0.0, 0.2, 1.0)` | Desacelera sharp | Page reveals, entrada de elementos |
+| `--ease-in-out` | `cubic-bezier(0.4, 0.0, 0.2, 1.0)` | Arco suave | Cross-fade, mudança de estado |
+| `--ease-spring` | `cubic-bezier(0.34, 1.56, 0.64, 1.0)` | Overshoot + settle | Button press, card hover, toggle |
+
+### Durações
+
+| Token | ms | Uso |
+|-------|----|-----|
+| `--duration-fast` | 150ms | Hover color/bg, micro-mudanças de opacity |
+| `--duration-base` | 280ms | Transições UI padrão: card hover, button, nav |
+| `--duration-slow` | 500ms | Transições de elementos grandes, reveal de painel |
+| `--duration-slower` | 800ms | Scroll reveal (`.reveal`), entrada page-level |
+
+### Keyframes
 
 ```css
-.fade-in-up {
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0.6); }
+  to   { transform: scale(1); }
+}
+
+@keyframes lineGrow {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+  /* Sempre: transform-origin: left center; */
+}
+```
+
+### Scroll Reveal
+
+```css
+.reveal {
   opacity: 0;
-  transform: translateY(30px);
-  transition: opacity 0.8s ease, transform 0.8s ease;
+  transform: translateY(32px);
+  transition: opacity var(--duration-slower) var(--ease-out),
+              transform var(--duration-slower) var(--ease-out);
 }
-
-.fade-in-up.visible {
+.reveal.visible {
   opacity: 1;
   transform: translateY(0);
 }
+.reveal-delay-1 { transition-delay: 80ms; }
+.reveal-delay-2 { transition-delay: 160ms; }
+.reveal-delay-3 { transition-delay: 240ms; }
+.reveal-delay-4 { transition-delay: 320ms; }
+.reveal-delay-5 { transition-delay: 400ms; }
 ```
 
-### 6.2 Stagger Children (Animação em Cascata)
+---
 
-```html
-<div class="stagger-children">
-  <div>Item 1</div>
-  <div>Item 2</div>
-  <div>Item 3</div>
-</div>
-```
+## 8. Grid & Layout
+
+### Container
 
 ```css
-.stagger-children > * {
-  opacity: 0;
-  transform: translateY(20px);
-  transition: opacity 0.6s ease, transform 0.6s ease;
-}
-
-.stagger-children.visible > *:nth-child(1) { transition-delay: 0.1s; }
-.stagger-children.visible > *:nth-child(2) { transition-delay: 0.2s; }
-.stagger-children.visible > *:nth-child(3) { transition-delay: 0.3s; }
-.stagger-children.visible > *:nth-child(4) { transition-delay: 0.4s; }
-.stagger-children.visible > *:nth-child(5) { transition-delay: 0.5s; }
-.stagger-children.visible > *:nth-child(6) { transition-delay: 0.6s; }
-
-.stagger-children.visible > * {
-  opacity: 1;
-  transform: translateY(0);
+.container {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 0 var(--s48); /* 48px side padding */
 }
 ```
 
-### 6.3 Hover Effects
+### Grid de Colunas
 
-#### Scale em Imagens
+- **12 colunas**, gutters de `16px`
+- CSS Grid com `grid-template-columns: repeat(12, 1fr)` e `gap: var(--s16)`
+
+### Padrões de Layout
+
+| Padrão | CSS |
+|--------|-----|
+| Hero split (assimétrico) | `grid-template-columns: 1fr 440px` |
+| 3 colunas manifesto | `grid-template-columns: repeat(3, 1fr); gap: var(--s48)` |
+| 2 colunas form/compare | `grid-template-columns: 1fr 1fr; gap: var(--s48)` |
+| 4 colunas motion/feature | `grid-template-columns: repeat(4, 1fr); gap: var(--s24)` |
+| 3 colunas card showcase | `grid-template-columns: repeat(3, 1fr); gap: var(--s24)` |
+
+### Arquitetura de Seção
+
+- Nav fixo: `64px` altura, `position: fixed`, `z-index: 1000`
+- Seções scrollam livremente atrás do nav
+- Primeira seção: `padding-top: 64px` para limpar o nav
+- Padding vertical de seção: sempre `var(--s96)` (96px)
+
+---
+
+## 9. Componentes
+
+### Navegação
+
+| Propriedade | Valor |
+|-------------|-------|
+| Altura | `64px` |
+| Posição | `fixed`, `top: 0`, `z-index: 1000` |
+| Background | `rgba(242,239,232,0.82)` — bone a 82% opacidade |
+| Backdrop | `backdrop-filter: blur(20px)` |
+| Border-bottom | `1px solid var(--ghost)` |
+
+**Logo:** Cormorant Garamond, `20px`, peso `600`, letter-spacing `0.22em`, uppercase, cor `--ink`. Gold dot: `5px × 5px`, `background: var(--gold)`, `border-radius: 50%`
+
+**Links:** DM Sans, `13px`, peso `500`, letter-spacing `0.06em`. Cor: `--steel` → `--ink` on hover
+
+**Nav CTA:** DM Sans, `13px`, peso `600`, uppercase, letter-spacing `0.08em`. Padding: `9px 20px`. BG: `--ink`, color: `--bone`, radius: `--radius-sm`. Hover: bg `--empire`, `translateY(-1px)`
+
+---
+
+### Botões
+
+Todos compartilham:
 ```css
-/* Imagem com zoom no hover */
-img {
-  transition-transform duration-700 group-hover:scale-105;
-}
+display: inline-flex; align-items: center; justify-content: center;
+font-family: var(--font-body); font-weight: 600; letter-spacing: 0.04em;
+border-radius: var(--radius-sm); white-space: nowrap;
+transition: all var(--duration-base) var(--ease-out);
 ```
 
-#### Card Hover
+#### Variantes
+
+| Variante | BG Default | Texto | Borda | Hover |
+|----------|-----------|-------|-------|-------|
+| Primary | `--empire` | `--bone` | `1px --empire` | bg: `--ink`, `translateY(-1px)`, `shadow-md` |
+| Secondary | transparent | `--empire` | `1.5px --empire` | bg: `--empire`, text: `--bone`, `translateY(-1px)` |
+| Ghost | transparent | `--steel` | `1px transparent` | bg: `--mist`, border: `--ghost`, text: `--ink` |
+| Danger | transparent | `--danger` | `1.5px --danger` | bg: `--danger`, text: `--white`, `translateY(-1px)` |
+| Gold | `--gold` | `--empire` | `1px --gold` | bg: `#b8912e`, `translateY(-1px)`, gold glow |
+
+Gold hover shadow: `0 8px 24px rgba(201,162,64,0.3)`
+
+#### Tamanhos
+
+| Size | Font Size | Padding | Extra |
+|------|-----------|---------|-------|
+| `.btn-sm` | 13px | `7px 14px` | — |
+| `.btn-md` | 16px | `10px 20px` | — |
+| `.btn-lg` | 20px | `14px 28px` | — |
+| `.btn-xl` | 13px | `16px 36px` | `text-transform: uppercase; letter-spacing: 0.06em` |
+
+---
+
+### Cards
+
+Todos: `border-radius: var(--radius-lg); overflow: hidden;`
+Hover: `transform: translateY(-4px); box-shadow: var(--shadow-lg);`
+Transição: `transform var(--duration-base) var(--ease-spring), box-shadow var(--duration-base) var(--ease-out)`
+
+#### Standard Card
+- BG: `--white`, border: `1px solid --ghost`, padding: `--s32`
+- Top bar: `3px` de `--empire` (via `::before`)
+- Tag: IBM Plex Mono 10px, `--gold`, uppercase
+- Título: Cormorant 28px peso 600, `--ink`
+- Body: DM Sans 16px, `--steel`, opacity 0.8
+
+#### Dark Card
+- BG: `--empire`, border: `1px solid rgba(191,197,204,0.08)`, padding: `--s32`
+- Top gradient: `linear-gradient(90deg, var(--gold), transparent)`, height `2px`
+- Tag: `--gold`; Título: Cormorant 28px, `--white`; Body: `--platinum`, opacity 0.7
+
+#### Metric Card
+- BG: `--white`, border: `1px solid --ghost`, padding: `--s32`
+- Número: Cormorant 80px peso 700, `--ink`, letter-spacing `-0.04em`
+- Sup: `0.3em`, peso 300, `--gold`, vertical-align super
+- Label: DM Sans 13px, `--steel`, opacity 0.6
+- Delta badge: IBM Plex Mono 13px, `#2D7D4A`, bg `rgba(45,125,74,0.1)`
+
+---
+
+### Badges
+
+Base:
 ```css
-.card-hover {
-  transition: all 0.4s ease;
-}
-
-.card-hover:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 20px 60px rgba(0,0,0,0.4);
-}
+display: inline-flex; align-items: center; gap: 5px;
+font-family: var(--font-mono); font-size: 10px;
+letter-spacing: 0.12em; text-transform: uppercase;
+padding: 4px 10px; border-radius: 3px; font-weight: 500;
 ```
 
-#### Logo Hover
+Badge dot: `5px × 5px`, `border-radius: 50%`
+
+| Variante | Background | Texto | Dot |
+|----------|------------|-------|-----|
+| Success | `rgba(45,125,74,0.1)` | `#2D7D4A` | `#2D7D4A` |
+| Warning | `rgba(201,162,64,0.12)` | `#8B6A1A` | `--gold` |
+| Danger | `rgba(139,46,46,0.1)` | `#8B2E2E` | `#8B2E2E` |
+| Neutral | `--ghost` | `--steel` | `--platinum` |
+| Empire | `--empire` | `--platinum` | `--gold` |
+
+---
+
+### Forms
+
+#### Input Base
 ```css
-.logo-item {
-  filter: grayscale(50%) brightness(0.9);
-  opacity: 0.85;
-  transition: all 0.3s ease;
-}
-
-.logo-item:hover {
-  filter: grayscale(0%) brightness(1);
-  opacity: 1;
-  transform: scale(1.05);
-}
+width: 100%; padding: 10px 14px;
+font-family: var(--font-body); font-size: var(--text-16);
+color: var(--ink); background: var(--mist);
+border: 1.5px solid var(--ghost); border-radius: var(--radius-sm);
 ```
+Placeholder: `color: var(--platinum)`
 
-### 6.4 Animações Contínuas
+#### Estados
 
-#### Pulse (Indicador)
-```html
-<span class="w-2 h-2 bg-empire-gold rounded-full animate-pulse"></span>
-```
+| Estado | Borda | Background | Box-shadow |
+|--------|-------|------------|-----------|
+| Default | `1.5px --ghost` | `--mist` | none |
+| Focus | `1.5px --empire` | `--white` | `0 0 0 3px rgba(13,24,41,0.08)` |
+| Error | `1.5px --danger` | `rgba(139,46,46,0.03)` | none |
 
-#### Bounce (Seta)
-```html
-<svg class="w-6 h-6 text-empire-gold animate-bounce">...</svg>
-```
+#### Form Label
+- Font: 13px, peso 500, cor `--ink`, letter-spacing `0.02em`
+- Sub-label: IBM Plex Mono 11px, `--steel`, opacity 0.6
 
-### 6.5 Transições Padrão
+---
 
-| Tipo | Duração | Easing | Uso |
-|------|---------|--------|-----|
-| Rápida | 0.3s | ease | Hover states, cores |
-| Média | 0.4s | ease | Cards, accordions |
-| Lenta | 0.5s-0.8s | ease | Fade in, scroll animations |
+### Tabela
 
-### 6.6 Background Patterns
-
-#### Grid Pattern
 ```css
-.grid-pattern {
-  background-image: 
-    linear-gradient(rgba(201, 169, 98, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(201, 169, 98, 0.03) 1px, transparent 1px);
-  background-size: 60px 60px;
+.table-wrap {
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--ghost);
 }
 ```
 
-#### Hero Background
-```css
-.hero-bg {
-  position: absolute;
-  inset: 0;
-  background-image: url('images/hero-bg.webp');
-  background-size: cover;
-  background-position: center;
-  opacity: 0.4;
-  z-index: 0;
-}
+- **thead:** bg `--mist`, border-bottom `1px solid --ghost`
+- **th:** IBM Plex Mono 11px, letter-spacing `0.12em`, uppercase, `--steel` opacity 0.7
+- **td:** padding `16px 24px`, border-bottom `1px solid --ghost`
+- **Row hover:** bg `--mist`
 
-.hero-bg::after {
+---
+
+### Section Label Pattern
+
+Sempre o primeiro elemento de cada seção:
+
+```css
+.section-label {
+  font-family: var(--font-mono);
+  font-size: var(--text-11);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gold);
+  display: flex;
+  align-items: center;
+  gap: var(--s8);
+  margin-bottom: var(--s32);
+}
+.section-label::before {
   content: '';
-  position: absolute;
+  display: inline-block;
+  width: 24px;
+  height: 1px;
+  background: var(--gold);
+}
+```
+
+---
+
+## 10. Texturas & Efeitos Visuais
+
+### Film Grain Overlay
+
+Textura de ruído sutil aplicada globalmente via `body::before`:
+
+```css
+body::before {
+  content: '';
+  position: fixed;
   inset: 0;
-  background: linear-gradient(180deg, rgba(10,10,11,0.3) 0%, rgba(10,10,11,0.9) 70%, rgba(10,10,11,1) 100%);
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.025; /* CRÍTICO: 0.025 — mais alto fica visível */
+  background-image: url("data:image/svg+xml,..."); /* fractalNoise */
+  background-repeat: repeat;
+  background-size: 128px 128px;
 }
 ```
 
-### 6.7 Scrollbar Customizada
+### Borda Top de Seção (Gradiente Gold)
+
+Para seções escuras:
+```css
+section::before {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold) 30%, var(--gold) 70%, transparent);
+}
+```
+
+### Borda Top de Dark Panel/Card
 
 ```css
-::-webkit-scrollbar {
-  width: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: #0a0a0b;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #27272a;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #c9a962;
+::before {
+  background: linear-gradient(90deg, var(--gold), transparent);
+  height: 2px;
 }
 ```
 
 ---
 
-## 7. Design Responsivo
+## 11. Regras Dark Mode
 
-### 7.1 Breakpoints
+Silver Empire usa **seções escuras intencionais** em vez de toggle de dark mode. Seções light e dark coexistem na mesma página. O contraste entre `--bone` e `--void`/`--empire` **É** o design.
 
-| Breakpoint | Largura | Prefixo Tailwind |
-|------------|---------|------------------|
-| Mobile | < 640px | default |
-| SM | ≥ 640px | `sm:` |
-| MD | ≥ 768px | `md:` |
-| LG | ≥ 1024px | `lg:` |
-| XL | ≥ 1280px | `xl:` |
-| 2XL | ≥ 1536px | `2xl:` |
+### Tokens Dark
 
-### 7.2 Padrões de Responsividade
+| Light Token | Equivalente Dark |
+|-------------|-----------------|
+| `--bone` (bg) | `--void` ou `--empire` |
+| `--white` (card bg) | `rgba(255,255,255,0.04)` |
+| `--ink` (text) | `--white` |
+| `--steel` (subtext) | `--platinum` a 70-80% opacity |
+| `--ghost` (border) | `rgba(191,197,204,0.1)` |
+| `--gold` (accent) | **inalterado** — sempre `#C9A240` |
 
-#### Tipografia Responsiva
-```html
-<!-- Títulos -->
-<h1 class="text-3xl md:text-5xl lg:text-6xl">
-<h2 class="text-3xl md:text-4xl lg:text-5xl">
+### Badges em Dark (contrast-adjusted)
 
-<!-- Body -->
-<p class="text-lg md:text-xl">
-<p class="text-sm md:text-base">
-```
+| Badge | Dark BG | Dark Text |
+|-------|---------|-----------|
+| Success | `rgba(45,125,74,0.2)` | `#5CD688` |
+| Warning | `rgba(201,162,64,0.2)` | `#E8C26A` |
+| Danger | `rgba(139,46,46,0.2)` | `#E07070` |
 
-#### Espaçamento Responsivo
-```html
-<!-- Padding de seção -->
-<section class="py-24 md:py-32">
+---
 
-<!-- Gap -->
-<div class="gap-6 md:gap-10">
+## 12. Padrões & Anti-Padrões
 
-<!-- Padding horizontal -->
-<div class="px-6 lg:px-8">
-```
+### ✅ Faça
 
-#### Grid Responsivo
-```html
-<!-- 1 → 2 → 3 colunas -->
-<div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+| Padrão | Razão |
+|--------|-------|
+| Gold exclusivamente em labels, linhas separadoras, unidades, bordas de painel | Escassez faz o gold parecer precioso |
+| Espaço negativo agressivo — seções premium são 70%+ vazias | Vazio sinaliza confiança |
+| Cormorant italic 300 + bold 700 para contraste dramático | Tensão entre pesos carrega a hierarquia |
+| Body copy em DM Sans 300–400 apenas | DM Sans mais pesado compete com Cormorant |
+| IBM Plex Mono exclusivamente para labels/tokens/metadata | Mono é sinal de precisão |
+| Section labels: mono 11px + gold + 24px gold line | Ritmo visual consistente |
+| `--ease-spring` só para interações físicas | Spring é tátil, não decorativo |
+| `--void` só para a seção mais escura | Escuro demais para conteúdo normal |
 
-<!-- 1 → 2 → 4 colunas -->
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+### ❌ Não Faça
 
-<!-- 2 → 5 → 6 colunas -->
-<div class="grid grid-cols-2 md:grid-cols-5 lg:grid-cols-6 gap-6 md:gap-8">
-```
+| Anti-Padrão | Por Quê |
+|-------------|---------|
+| `--gold` como preenchimento de fundo | Gold como field é garish |
+| Cormorant para parágrafos body | Hairlines de alto contraste cansam em leitura longa |
+| Misturar escalas de sombra aleatoriamente | Elevação inconsistente quebra hierarquia espacial |
+| Texto menor que 11px | IBM Plex Mono fica ilegível |
+| Usar mustard gold `#e8c926` | Este sistema usa `#C9A240` — mais rico, menos neon |
+| Animar `width`, `height`, `top`, `left`, `margin` | Causa layout reflow |
+| Empilhar múltiplos elementos gold na mesma zona | Gold ao lado de gold = nenhum é especial |
+| `--shadow-xl` em componentes pequenos | Sombra oversized em elementos pequenos fica errado |
+| Cormorant com peso abaixo de 300 | Peso óptico fica frágil demais |
+| Mais que 2 famílias de fonte por componente | Sistema de 3 fontes já é o limite |
 
-#### Navegação Responsiva
-```html
-<!-- Esconde em mobile -->
-<div class="hidden md:flex items-center space-x-8">
+---
 
-<!-- Mostra em mobile -->
-<button class="md:hidden text-empire-text p-2">
-```
-
-### 7.3 Mobile First
-
-Todos os estilos são escritos para mobile primeiro, com adições para telas maiores:
+## 13. Tokens CSS Completos
 
 ```css
-/* Mobile: padrão */
-.element {
-  padding: 1rem;
-  font-size: 1rem;
-}
-
-/* Tablet e acima */
-@media (min-width: 768px) {
-  .element {
-    padding: 2rem;
-    font-size: 1.25rem;
-  }
-}
-
-/* Desktop e acima */
-@media (min-width: 1024px) {
-  .element {
-    padding: 3rem;
-    font-size: 1.5rem;
-  }
-}
-```
-
----
-
-## 8. Ícones e SVGs
-
-### 8.1 Biblioteca de Ícones
-
-O projeto usa ícones SVG inline do Heroicons (outline style):
-
-#### Checkmark (Sucesso)
-```html
-<svg class="w-5 h-5 text-empire-gold" fill="currentColor" viewBox="0 0 20 20">
-  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-</svg>
-```
-
-#### Check Circle
-```html
-<svg class="w-5 h-5 text-empire-gold" fill="currentColor" viewBox="0 0 20 20">
-  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-</svg>
-```
-
-#### Arrow Right
-```html
-<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
-</svg>
-```
-
-#### Chevron Right
-```html
-<svg class="w-4 h-4 text-empire-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-</svg>
-```
-
-#### Menu (Hamburger)
-```html
-<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16"/>
-</svg>
-```
-
-#### Close (X)
-```html
-<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"/>
-</svg>
-```
-
-#### Arrow Down
-```html
-<svg class="w-6 h-6 text-empire-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
-</svg>
-```
-
-#### Eye (Visibilidade)
-```html
-<svg class="w-6 h-6 text-empire-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-</svg>
-```
-
-#### Lightning Bolt
-```html
-<svg class="w-5 h-5 text-empire-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-</svg>
-```
-
-#### Warning
-```html
-<svg class="w-5 h-5 text-empire-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-</svg>
-```
-
-#### Info
-```html
-<svg class="w-5 h-5 text-empire-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-</svg>
-```
-
-#### Clock
-```html
-<svg class="w-4 h-4 text-empire-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-</svg>
-```
-
-#### User
-```html
-<svg class="w-7 h-7 text-empire-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-</svg>
-```
-
-### 8.2 Tamanhos de Ícones
-
-| Uso | Tamanho | Classe |
-|-----|---------|--------|
-| Inline com texto | 16px | `w-4 h-4` |
-| Padrão | 20px | `w-5 h-5` |
-| Médio | 24px | `w-6 h-6` |
-| Grande | 28px | `w-7 h-7` |
-
-### 8.3 Cores de Ícones
-
-| Uso | Cor | Classe |
-|-----|-----|--------|
-| Padrão | Gold | `text-empire-gold` |
-| Sucesso | Emerald 400 | `text-emerald-400` |
-| Erro | Red 400 | `text-red-400` |
-| Secundário | Text/70 | `text-empire-text/70` |
-
----
-
-## 9. Padrões de Código
-
-### 9.1 Estrutura de Seção
-
-```html
-<section id="secao" class="py-24 md:py-32 relative">
-  <!-- Background opcional -->
-  <div class="grid-pattern absolute inset-0 opacity-30"></div>
-  
-  <div class="max-w-6xl mx-auto px-6 lg:px-8 relative">
-    <!-- Header da seção -->
-    <div class="text-center mb-16 fade-in-up">
-      <p class="text-empire-gold text-sm tracking-widest uppercase mb-4">Label</p>
-      <h2 class="font-display text-3xl md:text-4xl lg:text-5xl">Título</h2>
-    </div>
-    
-    <!-- Conteúdo -->
-    <div class="fade-in-up">
-      <!-- ... -->
-    </div>
-  </div>
-</section>
-```
-
-### 9.2 Estrutura de Card com Ícone
-
-```html
-<div class="card-hover bg-empire-card p-8 border border-empire-border hover:border-empire-gold/30">
-  <!-- Ícone -->
-  <div class="w-12 h-12 rounded-lg bg-empire-gold/10 flex items-center justify-center mb-6">
-    <svg class="w-6 h-6 text-empire-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <!-- SVG path -->
-    </svg>
-  </div>
-  
-  <!-- Título -->
-  <h3 class="text-xl font-medium mb-3 text-empire-text">Título do Card</h3>
-  
-  <!-- Descrição -->
-  <p class="text-empire-text/70 mb-4">Descrição principal do card.</p>
-  
-  <!-- Citação/Destaque opcional -->
-  <p class="text-empire-gold text-sm italic">"Citação ou destaque"</p>
-</div>
-```
-
-### 9.3 Padrão de Lista com Ícones
-
-```html
-<ul class="text-empire-text/70 text-sm space-y-3">
-  <li class="flex items-start gap-3">
-    <svg class="w-4 h-4 text-empire-gold flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-    </svg>
-    <span>Item da lista com <strong class="text-empire-text">destaque</strong></span>
-  </li>
-</ul>
-```
-
-### 9.4 JavaScript para Animações
-
-```javascript
-// Intersection Observer para fade-in
-const observerOptions = {
-  root: null,
-  rootMargin: '0px',
-  threshold: 0.1
-};
-
-const observer = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      entry.target.classList.add('visible');
-    }
-  });
-}, observerOptions);
-
-document.querySelectorAll('.fade-in-up, .stagger-children').forEach(el => {
-  observer.observe(el);
-});
-```
-
-### 9.5 Smooth Scroll
-
-```javascript
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-  anchor.addEventListener('click', function (e) {
-    e.preventDefault();
-    const target = document.querySelector(this.getAttribute('href'));
-    if (target) {
-      const headerOffset = 80;
-      const elementPosition = target.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: 'smooth'
-      });
-    }
-  });
-});
-```
-
----
-
-## 10. Implementação
-
-### 10.1 Setup Tailwind CSS
-
-```javascript
-// tailwind.config.js
-module.exports = {
-  theme: {
-    extend: {
-      colors: {
-        empire: {
-          bg: '#0a0a0b',
-          surface: '#111113',
-          card: '#18181b',
-          border: '#27272a',
-          text: '#fafafa',
-          gold: '#c9a962',
-          goldLight: '#e4d4a5',
-          goldDark: '#9a7b3c',
-        }
-      },
-      fontFamily: {
-        display: ['Cormorant Garamond', 'serif'],
-        body: ['DM Sans', 'sans-serif'],
-      },
-    }
-  }
-}
-```
-
-### 10.2 CSS Global
-
-```css
-/* styles.css */
 :root {
-  --gold-gradient: linear-gradient(135deg, #c9a962 0%, #e4d4a5 50%, #c9a962 100%);
-  --gold-text: #c9a962;
-  --green-gradient: linear-gradient(135deg, #16a34a 0%, #22c55e 50%, #16a34a 100%);
+  /* ─── COLOR SYSTEM ─── */
+  --void:       #070C14;
+  --empire:     #0D1829;
+  --steel:      #243B55;
+  --platinum:   #BFC5CC;
+  --gold:       #C9A240;
+  --bone:       #F2EFE8;
+  --ink:        #1A1F2E;
+  --ghost:      #E4E2DC;
+  --white:      #FFFFFF;
+  --mist:       #F7F6F2;
+  --danger:     #8B2E2E;
+
+  /* Semantic Aliases */
+  --bg-primary:   var(--bone);
+  --bg-inverse:   var(--empire);
+  --text-primary: var(--ink);
+  --text-inverse: var(--platinum);
+  --border:       var(--ghost);
+  --accent:       var(--gold);
+
+  /* ─── TYPOGRAPHY ─── */
+  --font-display: 'Cormorant Garamond', Georgia, serif;
+  --font-body:    'DM Sans', system-ui, sans-serif;
+  --font-mono:    'IBM Plex Mono', 'Courier New', monospace;
+
+  --text-11:  0.6875rem;
+  --text-13:  0.8125rem;
+  --text-16:  1rem;
+  --text-20:  1.25rem;
+  --text-28:  1.75rem;
+  --text-40:  2.5rem;
+  --text-56:  3.5rem;
+  --text-80:  5rem;
+  --text-120: 7.5rem;
+
+  /* ─── SPACING ─── */
+  --s4:   0.25rem;
+  --s8:   0.5rem;
+  --s16:  1rem;
+  --s24:  1.5rem;
+  --s32:  2rem;
+  --s48:  3rem;
+  --s64:  4rem;
+  --s96:  6rem;
+  --s128: 8rem;
+
+  /* ─── MOTION ─── */
+  --ease-out:    cubic-bezier(0.0, 0.0, 0.2, 1.0);
+  --ease-in-out: cubic-bezier(0.4, 0.0, 0.2, 1.0);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1.0);
+
+  --duration-fast:   150ms;
+  --duration-base:   280ms;
+  --duration-slow:   500ms;
+  --duration-slower: 800ms;
+
+  /* ─── SHADOWS ─── */
+  --shadow-sm: 0 1px 3px rgba(7,12,20,0.08), 0 1px 2px rgba(7,12,20,0.04);
+  --shadow-md: 0 4px 16px rgba(7,12,20,0.10), 0 2px 6px rgba(7,12,20,0.06);
+  --shadow-lg: 0 16px 48px rgba(7,12,20,0.14), 0 6px 16px rgba(7,12,20,0.08);
+  --shadow-xl: 0 32px 80px rgba(7,12,20,0.20), 0 12px 32px rgba(7,12,20,0.12);
+
+  /* ─── BORDER RADIUS ─── */
+  --radius-sm: 3px;
+  --radius-md: 6px;
+  --radius-lg: 12px;
 }
-
-html {
-  scroll-behavior: smooth;
-}
-
-body {
-  font-family: 'DM Sans', sans-serif;
-  background-color: #0a0a0b;
-  color: #fafafa;
-}
-
-.font-display {
-  font-family: 'Cormorant Garamond', serif;
-}
-
-/* Classes utilitárias */
-.text-gold-gradient {
-  background: var(--gold-gradient);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.border-gold-gradient {
-  border: 1px solid transparent;
-  background: linear-gradient(#18181b, #18181b) padding-box,
-              linear-gradient(135deg, #c9a962, #e4d4a5, #c9a962) border-box;
-}
-
-/* Componentes */
-.btn-premium { /* ... */ }
-.btn-secondary { /* ... */ }
-.card-hover { /* ... */ }
-
-/* Animações */
-.fade-in-up { /* ... */ }
-.stagger-children { /* ... */ }
-
-/* Backgrounds */
-.grid-pattern { /* ... */ }
-.hero-bg { /* ... */ }
-
-/* Scrollbar */
-::-webkit-scrollbar { /* ... */ }
-```
-
-### 10.3 HTML Base Template
-
-```html
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#0a0a0b">
-  
-  <!-- Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
-  
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            empire: {
-              bg: '#0a0a0b',
-              surface: '#111113',
-              card: '#18181b',
-              border: '#27272a',
-              text: '#fafafa',
-              gold: '#c9a962',
-              goldLight: '#e4d4a5',
-              goldDark: '#9a7b3c',
-            }
-          },
-          fontFamily: {
-            display: ['Cormorant Garamond', 'serif'],
-            body: ['DM Sans', 'sans-serif'],
-          },
-        }
-      }
-    }
-  </script>
-  
-  <!-- Custom Styles -->
-  <style>
-    /* CSS customizado aqui */
-  </style>
-</head>
-<body class="bg-empire-bg text-empire-text antialiased">
-  <!-- Conteúdo -->
-  
-  <script>
-    // JavaScript aqui
-  </script>
-</body>
-</html>
 ```
 
 ---
 
-## Apêndice: Referência Rápida
+## 14. Mapeamento Tailwind
 
-### Classes Mais Usadas
+O tailwind.config.ts do projeto deve mapear os tokens DS1 da seguinte forma:
+
+### Cores (tailwind.config.ts → theme.extend.colors.empire)
+
+```typescript
+empire: {
+  void:     '#070C14',
+  DEFAULT:  '#0D1829',  // --empire
+  steel:    '#243B55',
+  platinum: '#BFC5CC',
+  gold:     '#C9A240',
+  bone:     '#F2EFE8',
+  ink:      '#1A1F2E',
+  ghost:    '#E4E2DC',
+  mist:     '#F7F6F2',
+  danger:   '#8B2E2E',
+}
+```
+
+### Fontes (theme.extend.fontFamily)
+
+```typescript
+fontFamily: {
+  display: ['Cormorant Garamond', 'Georgia', 'serif'],
+  body:    ['DM Sans', 'system-ui', 'sans-serif'],
+  sans:    ['DM Sans', 'system-ui', 'sans-serif'],
+  mono:    ['IBM Plex Mono', 'Courier New', 'monospace'],
+}
+```
+
+### Classes Tailwind de Referência Rápida
 
 ```
-// Cores
-bg-empire-bg | bg-empire-surface | bg-empire-card
-text-empire-text | text-empire-gold | text-empire-text/70
-border-empire-border | border-empire-gold/30
+/* Cores de fundo */
+bg-empire-bone        /* fundo de página */
+bg-white              /* cards */
+bg-empire-mist        /* inputs, seção variante */
+bg-empire-void        /* seção escura profunda */
+bg-empire             /* painéis dark */
 
-// Tipografia
-font-display | font-body
-text-3xl md:text-5xl | text-sm | text-lg
-font-medium | font-semibold | font-light
-tracking-widest uppercase
+/* Cores de texto */
+text-empire-ink       /* texto primário */
+text-empire-steel     /* texto secundário */
+text-empire-platinum  /* texto em dark */
+text-empire-gold      /* acento, labels */
 
-// Espaçamento
-py-24 md:py-32 | px-6 lg:px-8
-gap-6 | space-y-6 | mb-16
+/* Bordas */
+border-empire-ghost   /* borda padrão */
 
-// Layout
-max-w-6xl mx-auto
-grid md:grid-cols-2 lg:grid-cols-3
-flex items-center justify-between
-
-// Efeitos
-fade-in-up | stagger-children
-card-hover | transition-all duration-300
-hover:border-empire-gold/30
-
-// Componentes
-btn-premium | btn-secondary
-border-gold-gradient | text-gold-gradient
+/* Tipografia */
+font-display          /* Cormorant Garamond */
+font-body             /* DM Sans */
+font-mono             /* IBM Plex Mono */
 ```
 
 ---
 
-*Documento criado para garantir consistência e escalabilidade do design do Acelerador de Audiência.*
+*DS1 — Silver Empire · v2.0 · EMPIRE Design Studio*
+*"Power through restraint. Authority through typography. Gold with parsimony."*

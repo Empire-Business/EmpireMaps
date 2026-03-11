@@ -186,13 +186,13 @@ export function GlobalSearch({ open, onClose }: GlobalSearchProps) {
       />
 
       {/* Modal */}
-      <div className="relative w-full max-w-lg bg-empire-card border border-empire-border shadow-2xl">
+      <div className="relative w-full max-w-lg bg-empire-surface rounded-lg border border-empire-ghost shadow-empire-xl overflow-hidden">
         {/* Input */}
-        <div className="flex items-center gap-3 px-4 py-3 border-b border-empire-border">
+        <div className="flex items-center gap-3 px-4 py-3 border-b border-empire-ghost">
           {loading ? (
-            <Loader2 className="w-4 h-4 text-empire-text/40 flex-shrink-0 animate-spin" />
+            <Loader2 className="w-4 h-4 text-empire-steel/40 flex-shrink-0 animate-spin" />
           ) : (
-            <Search className="w-4 h-4 text-empire-text/40 flex-shrink-0" />
+            <Search className="w-4 h-4 text-empire-steel/40 flex-shrink-0" />
           )}
           <input
             ref={inputRef}
@@ -200,17 +200,17 @@ export function GlobalSearch({ open, onClose }: GlobalSearchProps) {
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Buscar formatos, cards, entregáveis..."
-            className="flex-1 bg-transparent text-empire-text placeholder:text-empire-text/30 text-sm focus:outline-none"
+            className="flex-1 bg-transparent text-empire-ink placeholder:text-empire-steel/30 text-sm focus:outline-none"
           />
           {query && (
             <button
               onClick={() => { setQuery(''); setResults([]) }}
-              className="text-empire-text/30 hover:text-empire-text transition-colors"
+              className="text-empire-steel/30 hover:text-empire-ink transition-colors"
             >
               <X className="w-4 h-4" />
             </button>
           )}
-          <kbd className="hidden sm:flex items-center gap-0.5 text-xs text-empire-text/30 bg-empire-surface border border-empire-border px-1.5 py-0.5">
+          <kbd className="hidden sm:flex items-center gap-0.5 text-xs text-empire-steel/30 bg-empire-mist border border-empire-ghost px-1.5 py-0.5">
             Esc
           </kbd>
         </div>
@@ -228,25 +228,25 @@ export function GlobalSearch({ open, onClose }: GlobalSearchProps) {
                     className={cn(
                       'w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors',
                       i === selectedIndex
-                        ? 'bg-empire-gold/10 text-empire-text'
-                        : 'text-empire-text/70 hover:bg-empire-surface'
+                        ? 'bg-empire-gold/10 text-empire-ink'
+                        : 'text-empire-steel/80 hover:bg-empire-mist'
                     )}
                   >
                     <Icon className={cn(
                       'w-4 h-4 flex-shrink-0',
-                      i === selectedIndex ? 'text-empire-gold' : 'text-empire-text/30'
+                      i === selectedIndex ? 'text-empire-gold' : 'text-empire-steel/30'
                     )} />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">{result.title}</p>
                       {result.subtitle && (
-                        <p className="text-xs text-empire-text/40 truncate">{result.subtitle}</p>
+                        <p className="text-xs text-empire-steel/40 truncate">{result.subtitle}</p>
                       )}
                     </div>
                     <span className={cn(
                       'text-xs px-1.5 py-0.5 border flex-shrink-0',
                       i === selectedIndex
                         ? 'bg-empire-gold/20 border-empire-gold/30 text-empire-gold'
-                        : 'bg-empire-surface border-empire-border text-empire-text/30'
+                        : 'bg-empire-mist border-empire-ghost text-empire-steel/30'
                     )}>
                       {TYPE_LABELS[result.type]}
                     </span>
@@ -260,31 +260,31 @@ export function GlobalSearch({ open, onClose }: GlobalSearchProps) {
         {/* Empty state */}
         {query.length >= 2 && !loading && results.length === 0 && (
           <div className="py-8 text-center">
-            <p className="text-empire-text/40 text-sm">Nenhum resultado para "{query}"</p>
+            <p className="text-empire-steel/40 text-sm">Nenhum resultado para "{query}"</p>
           </div>
         )}
 
         {/* Hint */}
         {!query && (
           <div className="py-6 px-4 text-center">
-            <p className="text-empire-text/30 text-xs">
+            <p className="text-empire-steel/30 text-xs">
               Digite para buscar formatos, cards de conteúdo e entregáveis.
             </p>
           </div>
         )}
 
         {/* Footer */}
-        <div className="border-t border-empire-border px-4 py-2 flex items-center gap-4 text-xs text-empire-text/30">
+        <div className="border-t border-empire-ghost px-4 py-2 flex items-center gap-4 text-xs text-empire-steel/30">
           <span className="flex items-center gap-1">
-            <kbd className="bg-empire-surface border border-empire-border px-1 py-0.5">↑↓</kbd>
+            <kbd className="bg-empire-mist border border-empire-ghost px-1 py-0.5">↑↓</kbd>
             navegar
           </span>
           <span className="flex items-center gap-1">
-            <kbd className="bg-empire-surface border border-empire-border px-1 py-0.5">Enter</kbd>
+            <kbd className="bg-empire-mist border border-empire-ghost px-1 py-0.5">Enter</kbd>
             abrir
           </span>
           <span className="flex items-center gap-1">
-            <kbd className="bg-empire-surface border border-empire-border px-1 py-0.5">Esc</kbd>
+            <kbd className="bg-empire-mist border border-empire-ghost px-1 py-0.5">Esc</kbd>
             fechar
           </span>
         </div>

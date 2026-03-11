@@ -19,14 +19,18 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import {
-  Plus, X, GripVertical, Calendar, Link2, Sparkles, Loader2,
-  Trash2, Paperclip, FileIcon, BarChart2, AlertTriangle, Upload,
+  Plus, X, GripVertical, Calendar, Sparkles, Loader2,
+  Trash2, Paperclip, FileIcon, AlertTriangle, Upload,
+  CheckCircle2, RotateCcw, Tag, Hash,
 } from 'lucide-react'
+import { toast } from 'sonner'
 import { useAuth } from '@/contexts/AuthContext'
 import { useImpersonation } from '@/contexts/ImpersonationContext'
+import { useEffectiveClientId } from '@/hooks/useEffectiveClientId'
 import { useContentCards, useCreateCard, useUpdateCard, useDeleteCard } from '@/hooks/useContentCards'
 import { useContentFormats } from '@/hooks/useContentFormats'
 import { useCardAttachments, useUploadAttachment, useDeleteAttachment } from '@/hooks/useCardAttachments'
+import { useSocialProfiles } from '@/hooks/useSocialProfiles'
 import { ProductionMapUploader } from '@/components/deliverables/ProductionMapUploader'
 import { supabase } from '@/integrations/supabase/client'
 import { cn, formatDate } from '@/lib/utils'
@@ -34,16 +38,15 @@ import type { Database } from '@/integrations/supabase/types'
 
 type ContentCard = Database['public']['Tables']['content_cards']['Row']
 type CardStatus = ContentCard['status']
+type StageTag = ContentCard['stage_tag']
 type AttachmentRow = Database['public']['Tables']['card_attachments']['Row']
 type ContentCardInsert = Omit<Database['public']['Tables']['content_cards']['Insert'], 'client_id' | 'created_by'>
 
-const COLUMNS: { id: CardStatus; label: string; color: string }[] = [
-  { id: 'ideia', label: 'Ideia', color: 'border-t-empire-text/30' },
-  { id: 'em_producao', label: 'Em Produção', color: 'border-t-blue-500/60' },
-  { id: 'revisao', label: 'Revisão', color: 'border-t-yellow-500/60' },
-  { id: 'agendado', label: 'Agendado', color: 'border-t-purple-500/60' },
-  { id: 'publicado', label: 'Publicado', color: 'border-t-emerald-500/60' },
-  { id: 'arquivado', label: 'Arquivado', color: 'border-t-empire-text/20' },
+// Production map only shows these 3 columns
+const PRODUCTION_COLUMNS: { id: CardStatus; label: string; color: string }[] = [
+  { id: 'a_fazer', label: 'A Fazer', color: 'border-t-empire-steel/30' },
+  { id: 'em_andamento', label: 'Em Andamento', color: 'border-t-empire-gold/60' },
+  { id: 'aprovacao', label: 'Aprovação', color: 'border-t-empire-success/60' },
 ]
 
 const CHANNEL_OPTIONS = [
@@ -61,7 +64,26 @@ const CHANNEL_COLORS: Record<string, string> = {
   Pinterest: 'bg-red-600/10 text-red-400 border-red-600/20',
   Blog: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
   Email: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-  Outro: 'bg-empire-surface text-empire-text/50 border-empire-border',
+  Outro: 'bg-empire-mist text-empire-steel/50 border-empire-ghost',
+}
+
+const FORMAT_OPTIONS = [
+  'Reels', 'Carrossel', 'Stories', 'Vídeo YouTube', 'Shorts',
+  'Post Estático', 'Artigo Blog', 'Newsletter', 'TikTok', 'Outro',
+]
+
+const STAGE_TAG_LABELS: Record<StageTag, string> = {
+  aguardando_roteiro: 'Aguardando Roteiro',
+  roteiro_aprovado: 'Roteiro Aprovado',
+  em_edicao: 'Em Edição',
+  aprovado_final: 'Aprovado Final',
+}
+
+const STAGE_TAG_COLORS: Record<StageTag, string> = {
+  aguardando_roteiro: 'bg-orange-500/10 text-orange-400 border-orange-500/20',
+  roteiro_aprovado: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
+  em_edicao: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
+  aprovado_final: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
 }
 
 // ---- Card Form Schema ----
@@ -69,17 +91,23 @@ const cardSchema = z.object({
   title: z.string().min(1, 'Título obrigatório'),
   description: z.string().optional(),
   channel: z.string().optional(),
-  status: z.enum(['ideia', 'em_producao', 'revisao', 'agendado', 'publicado', 'arquivado'] as const),
+  status: z.enum(['a_fazer', 'em_andamento', 'aprovacao', 'aprovado_final', 'agendado', 'publicado', 'arquivado'] as const),
+  stage_tag: z.enum(['aguardando_roteiro', 'roteiro_aprovado', 'em_edicao', 'aprovado_final'] as const),
   production_date: z.string().optional(),
   publish_date: z.string().optional(),
-  responsible: z.string().optional(),
+  scriptwriter: z.string().optional(),
+  editor_name: z.string().optional(),
+  designer: z.string().optional(),
+  poster_name: z.string().optional(),
+  script_deadline: z.string().optional(),
+  edit_deadline: z.string().optional(),
+  source_file_url: z.string().optional(),
+  final_format: z.string().optional(),
+  destination_profiles: z.string().optional(),
   format_id: z.string().optional(),
   labels: z.string().optional(),
   publish_url: z.string().optional(),
   internal_notes: z.string().optional(),
-  metrics_reach: z.string().optional(),
-  metrics_impressions: z.string().optional(),
-  metrics_engagement: z.string().optional(),
 })
 type CardFormData = z.infer<typeof cardSchema>
 
@@ -114,9 +142,9 @@ function CardAttachmentsSection({ cardId }: { cardId: string }) {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Paperclip className="w-4 h-4 text-empire-gold" />
-          <h3 className="text-sm font-medium text-empire-text/70">Anexos</h3>
+          <h3 className="text-sm font-medium text-empire-steel/80">Entrega Final</h3>
           {attachments && attachments.length > 0 && (
-            <span className="text-xs text-empire-text/40">({attachments.length})</span>
+            <span className="text-xs text-empire-steel/40">({attachments.length})</span>
           )}
         </div>
         <button
@@ -145,30 +173,30 @@ function CardAttachmentsSection({ cardId }: { cardId: string }) {
       </div>
 
       {isLoading && (
-        <div className="text-xs text-empire-text/40">Carregando anexos...</div>
+        <div className="text-xs text-empire-steel/40">Carregando arquivos...</div>
       )}
 
       {attachments && attachments.length > 0 && (
         <ul className="space-y-1.5">
           {attachments.map((att: AttachmentRow) => (
-            <li key={att.id} className="flex items-center gap-2 bg-empire-surface border border-empire-border px-3 py-2">
-              <FileIcon className="w-3.5 h-3.5 text-empire-text/30 flex-shrink-0" />
+            <li key={att.id} className="flex items-center gap-2 bg-empire-mist border border-empire-ghost px-3 py-2">
+              <FileIcon className="w-3.5 h-3.5 text-empire-steel/30 flex-shrink-0" />
               <a
                 href={att.file_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex-1 min-w-0 text-xs text-empire-text/70 hover:text-empire-gold transition-colors truncate"
+                className="flex-1 min-w-0 text-xs text-empire-steel/80 hover:text-empire-gold transition-colors truncate"
               >
                 {att.file_name}
               </a>
               {att.file_size && (
-                <span className="text-xs text-empire-text/30 flex-shrink-0">{formatBytes(att.file_size)}</span>
+                <span className="text-xs text-empire-steel/30 flex-shrink-0">{formatBytes(att.file_size)}</span>
               )}
               <button
                 type="button"
                 onClick={() => deleteMutation.mutate(att)}
                 disabled={deleteMutation.isPending}
-                className="text-empire-text/20 hover:text-red-400 transition-colors flex-shrink-0"
+                className="text-empire-ink/20 hover:text-empire-danger transition-colors flex-shrink-0"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -178,7 +206,7 @@ function CardAttachmentsSection({ cardId }: { cardId: string }) {
       )}
 
       {!isLoading && (!attachments || attachments.length === 0) && (
-        <p className="text-xs text-empire-text/30">Nenhum anexo ainda.</p>
+        <p className="text-xs text-empire-steel/30">Nenhum arquivo enviado.</p>
       )}
     </div>
   )
@@ -199,12 +227,11 @@ function CardModal({ card, defaultStatus, clientId, canSeeInternalNotes, canDele
   const updateCard = useUpdateCard()
   const deleteCard = useDeleteCard()
   const { data: formats } = useContentFormats()
+  const { data: socialProfiles } = useSocialProfiles(clientId)
   const [error, setError] = useState<string | null>(null)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [reuseLoading, setReuseLoading] = useState(false)
   const [reuseResult, setReuseResult] = useState<ReuseResult | null>(null)
-
-  const existingMetrics = card?.metrics as Record<string, number> | null | undefined
 
   async function handleSuggestReuse() {
     if (!card) return
@@ -233,6 +260,36 @@ function CardModal({ card, defaultStatus, clientId, canSeeInternalNotes, canDele
     }
   }
 
+  // Approval action: approve script or edit/design
+  async function handleApproval() {
+    if (!card) return
+    const currentStage = card.stage_tag
+
+    if (currentStage === 'aguardando_roteiro' || currentStage === 'roteiro_aprovado') {
+      // Approving script → mark roteiro_aprovado and send back to 'a_fazer'
+      await updateCard.mutateAsync({
+        cardId: card.id,
+        data: {
+          stage_tag: 'roteiro_aprovado',
+          status: 'a_fazer',
+        },
+      })
+      toast.success('Roteiro aprovado! Card voltou para "A Fazer" para a etapa de Edição/Design.')
+      onClose()
+    } else if (currentStage === 'em_edicao') {
+      // Approving edit/design → final approval
+      await updateCard.mutateAsync({
+        cardId: card.id,
+        data: {
+          stage_tag: 'aprovado_final',
+          status: 'aprovado_final',
+        },
+      })
+      toast.success('Aprovado Final! Conteúdo enviado para o Mapa de Distribuição.')
+      onClose()
+    }
+  }
+
   const { register, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm<CardFormData>({
     resolver: zodResolver(cardSchema),
     defaultValues: {
@@ -240,20 +297,26 @@ function CardModal({ card, defaultStatus, clientId, canSeeInternalNotes, canDele
       description: card?.description ?? '',
       channel: card?.channel ?? '',
       format_id: card?.format_id ?? '',
-      status: card?.status ?? defaultStatus ?? 'ideia',
+      status: card?.status ?? defaultStatus ?? 'a_fazer',
+      stage_tag: card?.stage_tag ?? 'aguardando_roteiro',
       production_date: card?.production_date ?? '',
       publish_date: card?.publish_date ?? '',
-      responsible: card?.responsible ?? '',
+      scriptwriter: card?.scriptwriter ?? '',
+      editor_name: card?.editor_name ?? '',
+      designer: card?.designer ?? '',
+      poster_name: card?.poster_name ?? '',
+      script_deadline: card?.script_deadline ?? '',
+      edit_deadline: card?.edit_deadline ?? '',
+      source_file_url: card?.source_file_url ?? '',
+      final_format: card?.final_format ?? '',
+      destination_profiles: card?.destination_profiles?.join(', ') ?? '',
       labels: card?.labels?.join(', ') ?? '',
       publish_url: card?.publish_url ?? '',
       internal_notes: card?.internal_notes ?? '',
-      metrics_reach: existingMetrics?.reach?.toString() ?? '',
-      metrics_impressions: existingMetrics?.impressions?.toString() ?? '',
-      metrics_engagement: existingMetrics?.engagement_rate?.toString() ?? '',
     },
   })
 
-  const currentStatus = watch('status')
+  const currentStageTag = watch('stage_tag')
 
   async function onSubmit(data: CardFormData) {
     setError(null)
@@ -262,16 +325,8 @@ function CardModal({ card, defaultStatus, clientId, canSeeInternalNotes, canDele
         ? data.labels.split(',').map((l) => l.trim()).filter(Boolean)
         : null
 
-      const metricsReach = data.metrics_reach ? parseFloat(data.metrics_reach) : null
-      const metricsImpressions = data.metrics_impressions ? parseInt(data.metrics_impressions) : null
-      const metricsEngagement = data.metrics_engagement ? parseFloat(data.metrics_engagement) : null
-      const hasMetrics = metricsReach !== null || metricsImpressions !== null || metricsEngagement !== null
-      const metrics = hasMetrics
-        ? {
-            ...(metricsReach !== null && { reach: metricsReach }),
-            ...(metricsImpressions !== null && { impressions: metricsImpressions }),
-            ...(metricsEngagement !== null && { engagement_rate: metricsEngagement }),
-          }
+      const destinationProfiles = data.destination_profiles
+        ? data.destination_profiles.split(',').map((p) => p.trim()).filter(Boolean)
         : null
 
       const payload = {
@@ -280,13 +335,21 @@ function CardModal({ card, defaultStatus, clientId, canSeeInternalNotes, canDele
         channel: data.channel || null,
         format_id: data.format_id || null,
         status: data.status,
+        stage_tag: data.stage_tag,
         production_date: data.production_date || null,
         publish_date: data.publish_date || null,
-        responsible: data.responsible || null,
+        scriptwriter: data.scriptwriter || null,
+        editor_name: data.editor_name || null,
+        designer: data.designer || null,
+        poster_name: data.poster_name || null,
+        script_deadline: data.script_deadline || null,
+        edit_deadline: data.edit_deadline || null,
+        source_file_url: data.source_file_url || null,
+        final_format: data.final_format || null,
+        destination_profiles: destinationProfiles,
         labels,
         publish_url: data.publish_url || null,
         internal_notes: canSeeInternalNotes ? (data.internal_notes || null) : undefined,
-        metrics,
       }
 
       if (card) {
@@ -300,36 +363,101 @@ function CardModal({ card, defaultStatus, clientId, canSeeInternalNotes, canDele
     }
   }
 
+  const isInApprovalColumn = card?.status === 'aprovacao'
+  const canApproveScript = isInApprovalColumn && (card?.stage_tag === 'aguardando_roteiro' || card?.stage_tag === 'roteiro_aprovado')
+  const canApproveEdit = isInApprovalColumn && card?.stage_tag === 'em_edicao'
+
+  const approvalPhaseLabel = (() => {
+    if (!card) return ''
+    if (card.stage_tag === 'aguardando_roteiro') return 'Aprovar Roteiro'
+    if (card.stage_tag === 'roteiro_aprovado') return 'Aprovar Roteiro'
+    if (card.stage_tag === 'em_edicao') return 'Aprovar Edição/Design'
+    return ''
+  })()
+
   return (
     <div className="fixed inset-0 bg-black/60 flex items-start justify-center z-50 px-4 py-8 overflow-y-auto">
-      <div className="bg-empire-card border border-empire-border w-full max-w-2xl p-6 my-auto">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="font-display text-xl font-semibold text-empire-text">
-            {card ? 'Editar Card' : 'Novo Card'}
-          </h2>
+      <div className="bg-empire-surface rounded-lg border border-empire-ghost shadow-empire-lg w-full max-w-2xl p-6 my-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <h2 className="font-display text-xl font-semibold text-empire-ink">
+              {card ? 'Editar Card' : 'Novo Card'}
+            </h2>
+            {card?.content_id && (
+              <span className="flex items-center gap-1 text-xs bg-empire-gold/10 text-empire-gold border border-empire-gold/20 px-2 py-0.5">
+                <Hash className="w-3 h-3" />
+                {card.content_id}
+              </span>
+            )}
+          </div>
           <div className="flex items-center gap-3">
             {canDelete && card && !confirmDelete && (
               <button
                 type="button"
                 onClick={() => setConfirmDelete(true)}
-                className="text-empire-text/30 hover:text-red-400 transition-colors"
+                className="text-empire-steel/30 hover:text-empire-danger transition-colors"
                 title="Excluir card"
               >
                 <Trash2 className="w-4 h-4" />
               </button>
             )}
-            <button onClick={onClose} className="text-empire-text/40 hover:text-empire-text transition-colors">
+            <button onClick={onClose} className="text-empire-steel/40 hover:text-empire-ink transition-colors">
               <X className="w-5 h-5" />
             </button>
           </div>
         </div>
 
+        {/* Stage Tag Badge */}
+        {card && (
+          <div className="flex items-center gap-2 mb-4">
+            <Tag className="w-3.5 h-3.5 text-empire-steel/40" />
+            <span className={cn('text-xs px-2 py-0.5 border', STAGE_TAG_COLORS[card.stage_tag])}>
+              {STAGE_TAG_LABELS[card.stage_tag]}
+            </span>
+          </div>
+        )}
+
+        {/* Approval Actions */}
+        {(canApproveScript || canApproveEdit) && (
+          <div className="mb-4 bg-empire-gold/5 border border-empire-gold/20 px-4 py-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-empire-gold" />
+                <p className="text-sm text-empire-steel">
+                  {canApproveScript
+                    ? 'Este card está aguardando aprovação do Roteiro.'
+                    : 'Este card está aguardando aprovação da Edição/Design.'
+                  }
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handleApproval}
+                className="btn-premium text-sm flex items-center gap-1.5"
+              >
+                {canApproveScript ? (
+                  <>
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    {approvalPhaseLabel}
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    {approvalPhaseLabel}
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Delete confirmation */}
         {confirmDelete && (
           <div className="mb-4 bg-red-500/10 border border-red-500/20 px-4 py-3 space-y-3">
             <div className="flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 text-red-400 flex-shrink-0" />
-              <p className="text-red-400 text-sm font-medium">Tem certeza que deseja excluir este card? Esta ação não pode ser desfeita.</p>
+              <AlertTriangle className="w-4 h-4 text-empire-danger flex-shrink-0" />
+              <p className="text-empire-danger text-sm font-medium">Tem certeza que deseja excluir este card? Esta ação não pode ser desfeita.</p>
             </div>
             <div className="flex gap-2">
               <button
@@ -343,7 +471,7 @@ function CardModal({ card, defaultStatus, clientId, canSeeInternalNotes, canDele
                 type="button"
                 onClick={handleDelete}
                 disabled={deleteCard.isPending}
-                className="flex-1 bg-red-500/20 border border-red-500/30 text-red-400 hover:bg-red-500/30 transition-colors px-4 py-2 text-sm font-medium disabled:opacity-50"
+                className="flex-1 btn-danger justify-center disabled:opacity-50"
               >
                 {deleteCard.isPending ? 'Excluindo...' : 'Sim, excluir'}
               </button>
@@ -352,38 +480,44 @@ function CardModal({ card, defaultStatus, clientId, canSeeInternalNotes, canDele
         )}
 
         {error && (
-          <p className="text-red-400 text-sm bg-red-400/10 border border-red-400/20 px-4 py-3 mb-4">
+          <p className="text-empire-danger text-sm bg-empire-danger/10 border border-empire-danger/20 rounded-sm px-4 py-3 mb-4">
             {error}
           </p>
         )}
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          {/* Title */}
           <div>
-            <label className="block text-sm text-empire-text/70 mb-1.5">Título *</label>
+            <label className="block text-sm text-empire-steel/80 mb-1.5">Título *</label>
             <input
               {...register('title')}
-              className="w-full bg-empire-surface border border-empire-border text-empire-text px-4 py-2.5 text-sm focus:outline-none focus:border-empire-gold/50 transition-colors"
+              className="w-full bg-empire-mist border border-empire-ghost text-empire-ink px-4 py-2.5 text-sm focus:outline-none focus:border-empire-gold/50 transition-colors"
               placeholder="Título do conteúdo"
             />
-            {errors.title && <p className="text-red-400 text-xs mt-1">{errors.title.message}</p>}
+            {errors.title && <p className="text-empire-danger text-xs mt-1">{errors.title.message}</p>}
           </div>
 
+          {/* Conteúdo / Briefing (was "Descrição") */}
           <div>
-            <label className="block text-sm text-empire-text/70 mb-1.5">Descrição</label>
+            <label className="block text-sm text-empire-steel/80 mb-1.5">
+              Conteúdo / Briefing
+              <span className="text-xs text-empire-steel/40 ml-1">(roteiro, minutagem, headline, referências)</span>
+            </label>
             <textarea
               {...register('description')}
-              rows={3}
-              className="w-full bg-empire-surface border border-empire-border text-empire-text px-4 py-2.5 text-sm focus:outline-none focus:border-empire-gold/50 transition-colors resize-none"
-              placeholder="Descreva o conteúdo..."
+              rows={5}
+              className="w-full bg-empire-mist border border-empire-ghost text-empire-ink px-4 py-2.5 text-sm focus:outline-none focus:border-empire-gold/50 transition-colors resize-none"
+              placeholder="Roteiro completo, minutagem dos cortes, headline para edição, referências criativas..."
             />
           </div>
 
+          {/* Canal + Status */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm text-empire-text/70 mb-1.5">Canal</label>
+              <label className="block text-sm text-empire-steel/80 mb-1.5">Canal</label>
               <select
                 {...register('channel')}
-                className="w-full bg-empire-surface border border-empire-border text-empire-text px-4 py-2.5 text-sm focus:outline-none focus:border-empire-gold/50 transition-colors"
+                className="w-full bg-empire-mist border border-empire-ghost text-empire-ink px-4 py-2.5 text-sm focus:outline-none focus:border-empire-gold/50 transition-colors"
               >
                 <option value="">Selecione...</option>
                 {CHANNEL_OPTIONS.map((c) => (
@@ -393,23 +527,53 @@ function CardModal({ card, defaultStatus, clientId, canSeeInternalNotes, canDele
             </div>
 
             <div>
-              <label className="block text-sm text-empire-text/70 mb-1.5">Status</label>
+              <label className="block text-sm text-empire-steel/80 mb-1.5">Etapa</label>
               <select
                 {...register('status')}
-                className="w-full bg-empire-surface border border-empire-border text-empire-text px-4 py-2.5 text-sm focus:outline-none focus:border-empire-gold/50 transition-colors"
+                className="w-full bg-empire-mist border border-empire-ghost text-empire-ink px-4 py-2.5 text-sm focus:outline-none focus:border-empire-gold/50 transition-colors"
               >
-                {COLUMNS.map((col) => (
+                {PRODUCTION_COLUMNS.map((col) => (
                   <option key={col.id} value={col.id}>{col.label}</option>
                 ))}
               </select>
             </div>
           </div>
 
+          {/* Tag de Etapa + Formato Final */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm text-empire-steel/80 mb-1.5">Tag de Etapa</label>
+              <select
+                {...register('stage_tag')}
+                className="w-full bg-empire-mist border border-empire-ghost text-empire-ink px-4 py-2.5 text-sm focus:outline-none focus:border-empire-gold/50 transition-colors"
+              >
+                <option value="aguardando_roteiro">Aguardando Roteiro</option>
+                <option value="roteiro_aprovado">Roteiro Aprovado</option>
+                <option value="em_edicao">Em Edição</option>
+                <option value="aprovado_final">Aprovado Final</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm text-empire-steel/80 mb-1.5">Formato Final</label>
+              <select
+                {...register('final_format')}
+                className="w-full bg-empire-mist border border-empire-ghost text-empire-ink px-4 py-2.5 text-sm focus:outline-none focus:border-empire-gold/50 transition-colors"
+              >
+                <option value="">Selecione...</option>
+                {FORMAT_OPTIONS.map((f) => (
+                  <option key={f} value={f}>{f}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Formato da biblioteca */}
           <div>
-            <label className="block text-sm text-empire-text/70 mb-1.5">Formato</label>
+            <label className="block text-sm text-empire-steel/80 mb-1.5">Formato (Biblioteca)</label>
             <select
               {...register('format_id')}
-              className="w-full bg-empire-surface border border-empire-border text-empire-text px-4 py-2.5 text-sm focus:outline-none focus:border-empire-gold/50 transition-colors"
+              className="w-full bg-empire-mist border border-empire-ghost text-empire-ink px-4 py-2.5 text-sm focus:outline-none focus:border-empire-gold/50 transition-colors"
             >
               <option value="">Selecione um formato...</option>
               {formats?.map((f) => (
@@ -418,110 +582,134 @@ function CardModal({ card, defaultStatus, clientId, canSeeInternalNotes, canDele
             </select>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          {/* Responsáveis separados */}
+          <div className="border-t border-empire-ghost pt-4">
+            <h3 className="text-sm font-medium text-empire-steel/80 mb-3">Responsáveis</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs text-empire-steel/50 mb-1">Roteirista</label>
+                <input
+                  {...register('scriptwriter')}
+                  className="w-full bg-empire-mist border border-empire-ghost text-empire-ink px-3 py-2 text-sm focus:outline-none focus:border-empire-gold/50 transition-colors"
+                  placeholder="Nome do roteirista"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-empire-steel/50 mb-1">Editor</label>
+                <input
+                  {...register('editor_name')}
+                  className="w-full bg-empire-mist border border-empire-ghost text-empire-ink px-3 py-2 text-sm focus:outline-none focus:border-empire-gold/50 transition-colors"
+                  placeholder="Nome do editor"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-empire-steel/50 mb-1">Designer</label>
+                <input
+                  {...register('designer')}
+                  className="w-full bg-empire-mist border border-empire-ghost text-empire-ink px-3 py-2 text-sm focus:outline-none focus:border-empire-gold/50 transition-colors"
+                  placeholder="Nome do designer"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-empire-steel/50 mb-1">Responsável Postagem</label>
+                <input
+                  {...register('poster_name')}
+                  className="w-full bg-empire-mist border border-empire-ghost text-empire-ink px-3 py-2 text-sm focus:outline-none focus:border-empire-gold/50 transition-colors"
+                  placeholder="Nome do responsável"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Prazos */}
+          <div className="border-t border-empire-ghost pt-4">
+            <h3 className="text-sm font-medium text-empire-steel/80 mb-3">Prazos</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs text-empire-steel/50 mb-1">Prazo — Roteiro</label>
+                <input
+                  {...register('script_deadline')}
+                  type="date"
+                  className="w-full bg-empire-mist border border-empire-ghost text-empire-ink px-3 py-2 text-sm focus:outline-none focus:border-empire-gold/50 transition-colors"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-empire-steel/50 mb-1">Prazo — Edição/Design</label>
+                <input
+                  {...register('edit_deadline')}
+                  type="date"
+                  className="w-full bg-empire-mist border border-empire-ghost text-empire-ink px-3 py-2 text-sm focus:outline-none focus:border-empire-gold/50 transition-colors"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-empire-steel/50 mb-1">Data de Produção</label>
+                <input
+                  {...register('production_date')}
+                  type="date"
+                  className="w-full bg-empire-mist border border-empire-ghost text-empire-ink px-3 py-2 text-sm focus:outline-none focus:border-empire-gold/50 transition-colors"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-empire-steel/50 mb-1">Data de Publicação</label>
+                <input
+                  {...register('publish_date')}
+                  type="date"
+                  className="w-full bg-empire-mist border border-empire-ghost text-empire-ink px-3 py-2 text-sm focus:outline-none focus:border-empire-gold/50 transition-colors"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Arquivo de Origem + Perfis de Destino */}
+          <div className="border-t border-empire-ghost pt-4 space-y-4">
             <div>
-              <label className="block text-sm text-empire-text/70 mb-1.5">Data de Produção</label>
+              <label className="block text-sm text-empire-steel/80 mb-1.5">Arquivo de Origem</label>
               <input
-                {...register('production_date')}
-                type="date"
-                className="w-full bg-empire-surface border border-empire-border text-empire-text px-4 py-2.5 text-sm focus:outline-none focus:border-empire-gold/50 transition-colors"
+                {...register('source_file_url')}
+                className="w-full bg-empire-mist border border-empire-ghost text-empire-ink px-4 py-2.5 text-sm focus:outline-none focus:border-empire-gold/50 transition-colors"
+                placeholder="Link para o material base (vídeo bruto, gravação, referência)"
               />
             </div>
 
             <div>
-              <label className="block text-sm text-empire-text/70 mb-1.5">Data de Publicação</label>
+              <label className="block text-sm text-empire-steel/80 mb-1.5">
+                Perfis de Destino
+                {socialProfiles && socialProfiles.length > 0 && (
+                  <span className="text-xs text-empire-steel/40 ml-1">
+                    (disponíveis: {socialProfiles.map(p => `@${p.handle}`).join(', ')})
+                  </span>
+                )}
+              </label>
               <input
-                {...register('publish_date')}
-                type="date"
-                className="w-full bg-empire-surface border border-empire-border text-empire-text px-4 py-2.5 text-sm focus:outline-none focus:border-empire-gold/50 transition-colors"
+                {...register('destination_profiles')}
+                className="w-full bg-empire-mist border border-empire-ghost text-empire-ink px-4 py-2.5 text-sm focus:outline-none focus:border-empire-gold/50 transition-colors"
+                placeholder="@perfil1, @perfil2 (separados por vírgula)"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm text-empire-steel/80 mb-1.5">Labels (separadas por vírgula)</label>
+              <input
+                {...register('labels')}
+                className="w-full bg-empire-mist border border-empire-ghost text-empire-ink px-4 py-2.5 text-sm focus:outline-none focus:border-empire-gold/50 transition-colors"
+                placeholder="educativo, semanal, trending"
               />
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm text-empire-text/70 mb-1.5">Responsável</label>
-            <input
-              {...register('responsible')}
-              className="w-full bg-empire-surface border border-empire-border text-empire-text px-4 py-2.5 text-sm focus:outline-none focus:border-empire-gold/50 transition-colors"
-              placeholder="Nome do responsável"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm text-empire-text/70 mb-1.5">Labels (separadas por vírgula)</label>
-            <input
-              {...register('labels')}
-              className="w-full bg-empire-surface border border-empire-border text-empire-text px-4 py-2.5 text-sm focus:outline-none focus:border-empire-gold/50 transition-colors"
-              placeholder="educativo, semanal, trending"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm text-empire-text/70 mb-1.5">URL de Publicação</label>
-            <input
-              {...register('publish_url')}
-              type="url"
-              className="w-full bg-empire-surface border border-empire-border text-empire-text px-4 py-2.5 text-sm focus:outline-none focus:border-empire-gold/50 transition-colors"
-              placeholder="https://..."
-            />
-          </div>
-
+          {/* Notas internas */}
           {canSeeInternalNotes && (
             <div>
-              <label className="block text-sm text-empire-text/70 mb-1.5">
+              <label className="block text-sm text-empire-steel/80 mb-1.5">
                 Notas internas
                 <span className="ml-1 text-xs text-empire-gold/60">(Admin/Consultor)</span>
               </label>
               <textarea
                 {...register('internal_notes')}
                 rows={3}
-                className="w-full bg-empire-surface border border-empire-border text-empire-text px-4 py-2.5 text-sm focus:outline-none focus:border-empire-gold/50 transition-colors resize-none"
+                className="w-full bg-empire-mist border border-empire-ghost text-empire-ink px-4 py-2.5 text-sm focus:outline-none focus:border-empire-gold/50 transition-colors resize-none"
                 placeholder="Observações internas..."
               />
-            </div>
-          )}
-
-          {/* Metrics — visible when status is publicado */}
-          {(currentStatus === 'publicado' || (card && existingMetrics)) && (
-            <div className="border-t border-empire-border pt-4 space-y-3">
-              <div className="flex items-center gap-2">
-                <BarChart2 className="w-4 h-4 text-empire-gold" />
-                <h3 className="text-sm font-medium text-empire-text/70">Métricas de Desempenho</h3>
-              </div>
-              <div className="grid grid-cols-3 gap-3">
-                <div>
-                  <label className="block text-xs text-empire-text/50 mb-1">Alcance</label>
-                  <input
-                    {...register('metrics_reach')}
-                    type="number"
-                    min="0"
-                    className="w-full bg-empire-surface border border-empire-border text-empire-text px-3 py-2 text-sm focus:outline-none focus:border-empire-gold/50 transition-colors"
-                    placeholder="0"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-empire-text/50 mb-1">Impressões</label>
-                  <input
-                    {...register('metrics_impressions')}
-                    type="number"
-                    min="0"
-                    className="w-full bg-empire-surface border border-empire-border text-empire-text px-3 py-2 text-sm focus:outline-none focus:border-empire-gold/50 transition-colors"
-                    placeholder="0"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-empire-text/50 mb-1">Engajamento %</label>
-                  <input
-                    {...register('metrics_engagement')}
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    max="100"
-                    className="w-full bg-empire-surface border border-empire-border text-empire-text px-3 py-2 text-sm focus:outline-none focus:border-empire-gold/50 transition-colors"
-                    placeholder="0.00"
-                  />
-                </div>
-              </div>
             </div>
           )}
 
@@ -539,23 +727,23 @@ function CardModal({ card, defaultStatus, clientId, canSeeInternalNotes, canDele
           </div>
         </form>
 
-        {/* Attachments — only for existing cards */}
+        {/* Entrega Final (was "Anexos") — only for existing cards */}
         {card && (
-          <div className="mt-6 pt-6 border-t border-empire-border">
+          <div className="mt-6 pt-6 border-t border-empire-ghost">
             <CardAttachmentsSection cardId={card.id} />
           </div>
         )}
 
         {/* Reuse suggestions — only for existing cards */}
         {card && (
-          <div className="mt-6 pt-6 border-t border-empire-border">
+          <div className="mt-6 pt-6 border-t border-empire-ghost">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-medium text-empire-text/70">Sugestões de Reaproveitamento</h3>
+              <h3 className="text-sm font-medium text-empire-steel/80">Sugestões de Reaproveitamento</h3>
               <button
                 type="button"
                 onClick={handleSuggestReuse}
                 disabled={reuseLoading}
-                className="flex items-center gap-1.5 text-xs text-empire-gold hover:text-empire-goldLight transition-colors disabled:opacity-50"
+                className="flex items-center gap-1.5 text-xs text-empire-gold hover:text-empire-gold transition-colors disabled:opacity-50"
               >
                 {reuseLoading ? (
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -574,17 +762,17 @@ function CardModal({ card, defaultStatus, clientId, canSeeInternalNotes, canDele
                   </p>
                 )}
                 {reuseResult.suggestions.map((s, i) => (
-                  <div key={i} className="bg-empire-surface border border-empire-border p-3 space-y-1.5">
+                  <div key={i} className="bg-empire-mist border border-empire-ghost p-3 space-y-1.5">
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-medium text-empire-text">{s.format}</span>
-                      <span className="text-xs text-empire-text/40">→</span>
+                      <span className="text-xs font-medium text-empire-ink">{s.format}</span>
+                      <span className="text-xs text-empire-steel/40">→</span>
                       <span className="text-xs text-empire-gold/80">{s.channel}</span>
                     </div>
-                    <p className="text-xs text-empire-text/60">{s.rationale}</p>
+                    <p className="text-xs text-empire-steel/60">{s.rationale}</p>
                     {s.adaptation_tips && s.adaptation_tips.length > 0 && (
                       <ul className="space-y-0.5">
                         {s.adaptation_tips.map((tip, j) => (
-                          <li key={j} className="text-xs text-empire-text/50 flex gap-1.5">
+                          <li key={j} className="text-xs text-empire-steel/50 flex gap-1.5">
                             <span className="text-empire-gold/50 flex-shrink-0">•</span>
                             {tip}
                           </li>
@@ -622,11 +810,13 @@ function KanbanCard({ card, onClick, isDragging }: KanbanCardProps) {
     ? (CHANNEL_COLORS[card.channel] ?? CHANNEL_COLORS['Outro'])
     : CHANNEL_COLORS['Outro']
 
+  const stageClass = STAGE_TAG_COLORS[card.stage_tag]
+
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className="bg-empire-bg border border-empire-border p-3 cursor-pointer group hover:border-empire-gold/30 transition-colors"
+      className="bg-empire-bone border border-empire-ghost p-3 cursor-pointer group hover:border-empire-gold/30 transition-colors"
       onClick={onClick}
     >
       <div className="flex items-start gap-2">
@@ -634,46 +824,82 @@ function KanbanCard({ card, onClick, isDragging }: KanbanCardProps) {
           {...attributes}
           {...listeners}
           onClick={(e) => e.stopPropagation()}
-          className="mt-0.5 text-empire-text/20 hover:text-empire-text/50 transition-colors cursor-grab active:cursor-grabbing flex-shrink-0"
+          className="mt-0.5 text-empire-ink/20 hover:text-empire-steel/50 transition-colors cursor-grab active:cursor-grabbing flex-shrink-0"
         >
           <GripVertical className="w-3.5 h-3.5" />
         </button>
         <div className="flex-1 min-w-0">
-          <p className="text-empire-text text-sm font-medium leading-snug line-clamp-2">
+          {/* Content ID */}
+          {card.content_id && (
+            <span className="text-[10px] text-empire-gold/60 font-mono mb-0.5 block">
+              {card.content_id}
+            </span>
+          )}
+
+          <p className="text-empire-ink text-sm font-medium leading-snug line-clamp-2">
             {card.title}
           </p>
 
           <div className="flex flex-wrap items-center gap-1.5 mt-2">
+            {/* Stage Tag */}
+            <span className={cn('text-[10px] px-1.5 py-0.5 border', stageClass)}>
+              {STAGE_TAG_LABELS[card.stage_tag]}
+            </span>
+
             {card.channel && (
-              <span className={cn('text-xs px-1.5 py-0.5 border', channelClass)}>
+              <span className={cn('text-[10px] px-1.5 py-0.5 border', channelClass)}>
                 {card.channel}
               </span>
             )}
-            {card.labels && card.labels.map((label) => (
-              <span key={label} className="text-xs text-empire-text/40 bg-empire-surface px-1.5 py-0.5">
-                {label}
+
+            {card.final_format && (
+              <span className="text-[10px] text-empire-steel/40 bg-empire-mist px-1.5 py-0.5">
+                {card.final_format}
               </span>
-            ))}
+            )}
           </div>
 
-          {card.publish_date && (
-            <div className="flex items-center gap-1 mt-2">
-              <Calendar className="w-3 h-3 text-empire-text/30" />
-              <span className="text-empire-text/40 text-xs">{formatDate(card.publish_date)}</span>
+          {card.labels && card.labels.length > 0 && (
+            <div className="flex flex-wrap gap-1 mt-1.5">
+              {card.labels.map((label) => (
+                <span key={label} className="text-[10px] text-empire-steel/40 bg-empire-mist px-1.5 py-0.5">
+                  {label}
+                </span>
+              ))}
             </div>
           )}
 
-          {card.publish_url && (
-            <a
-              href={card.publish_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={(e) => e.stopPropagation()}
-              className="flex items-center gap-1 mt-1 text-xs text-empire-gold/50 hover:text-empire-gold transition-colors"
-            >
-              <Link2 className="w-3 h-3" />
-              Ver publicação
-            </a>
+          {/* Deadlines */}
+          {(card.script_deadline || card.edit_deadline) && (
+            <div className="flex items-center gap-1 mt-2">
+              <Calendar className="w-3 h-3 text-empire-steel/30" />
+              <span className="text-empire-steel/40 text-[10px]">
+                {card.stage_tag === 'aguardando_roteiro' && card.script_deadline
+                  ? `Roteiro: ${formatDate(card.script_deadline)}`
+                  : card.edit_deadline
+                    ? `Edição: ${formatDate(card.edit_deadline)}`
+                    : card.script_deadline
+                      ? `Roteiro: ${formatDate(card.script_deadline)}`
+                      : ''
+                }
+              </span>
+            </div>
+          )}
+
+          {/* Responsible for current phase */}
+          {(card.scriptwriter || card.editor_name || card.designer) && (
+            <div className="mt-1.5 text-[10px] text-empire-ink/35">
+              {card.stage_tag === 'aguardando_roteiro' && card.scriptwriter
+                ? `Roteirista: ${card.scriptwriter}`
+                : (card.stage_tag === 'roteiro_aprovado' || card.stage_tag === 'em_edicao')
+                  ? card.editor_name
+                    ? `Editor: ${card.editor_name}`
+                    : card.designer
+                      ? `Designer: ${card.designer}`
+                      : ''
+                  : ''
+              }
+            </div>
           )}
         </div>
       </div>
@@ -697,21 +923,21 @@ function KanbanColumn({ column, cards, activeId, onAddCard, onCardClick }: Kanba
     <div
       ref={setNodeRef}
       className={cn(
-        'bg-empire-card border border-empire-border border-t-2 flex flex-col min-h-96 transition-colors',
+        'bg-empire-bone border border-empire-ghost border-t-2 flex flex-col min-h-96 transition-colors',
         column.color,
         isOver && 'border-empire-gold/50 bg-empire-gold/5'
       )}
     >
-      <div className="px-3 py-3 flex items-center justify-between border-b border-empire-border">
+      <div className="px-3 py-3 flex items-center justify-between border-b border-empire-ghost">
         <div className="flex items-center gap-2">
-          <span className="text-empire-text text-sm font-medium">{column.label}</span>
-          <span className="text-xs text-empire-text/40 bg-empire-surface px-1.5 py-0.5">
+          <span className="text-empire-ink text-sm font-medium">{column.label}</span>
+          <span className="text-xs text-empire-steel/40 bg-empire-mist px-1.5 py-0.5">
             {cards.length}
           </span>
         </div>
         <button
           onClick={onAddCard}
-          className="text-empire-text/30 hover:text-empire-gold transition-colors"
+          className="text-empire-steel/30 hover:text-empire-gold transition-colors"
         >
           <Plus className="w-4 h-4" />
         </button>
@@ -736,10 +962,7 @@ function KanbanColumn({ column, cards, activeId, onAddCard, onCardClick }: Kanba
 // ---- Main Page ----
 export default function ProductionMapPage() {
   const { user, profile } = useAuth()
-  const { impersonatedClient } = useImpersonation()
-
-  const effectiveProfile = impersonatedClient ?? profile
-  const clientId = effectiveProfile?.id ?? user?.id
+  const clientId = useEffectiveClientId()
 
   const canSeeInternalNotes = profile?.role === 'admin' || profile?.role === 'consultant'
 
@@ -749,11 +972,14 @@ export default function ProductionMapPage() {
   const [activeId, setActiveId] = useState<string | null>(null)
   const [showModal, setShowModal] = useState(false)
   const [editingCard, setEditingCard] = useState<ContentCard | null>(null)
-  const [defaultColumnStatus, setDefaultColumnStatus] = useState<CardStatus>('ideia')
+  const [defaultColumnStatus, setDefaultColumnStatus] = useState<CardStatus>('a_fazer')
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
   )
+
+  // Only show cards in production columns (not approved_final, agendado, publicado)
+  const productionStatuses: CardStatus[] = ['a_fazer', 'em_andamento', 'aprovacao']
 
   function getColumnCards(status: CardStatus): ContentCard[] {
     return (cards ?? []).filter((c) => c.status === status)
@@ -768,13 +994,11 @@ export default function ProductionMapPage() {
     const { active, over } = event
     if (!over || active.id === over.id) return
 
-    // Check if dropped directly on a column
-    let targetColumnId = COLUMNS.find((col) => col.id === over.id)?.id
+    let targetColumnId = PRODUCTION_COLUMNS.find((col) => col.id === over.id)?.id
 
-    // If dropped on a card, find which column that card belongs to
     if (!targetColumnId) {
       const targetCard = cards?.find((c) => c.id === over.id)
-      if (targetCard) {
+      if (targetCard && productionStatuses.includes(targetCard.status)) {
         targetColumnId = targetCard.status
       }
     }
@@ -782,9 +1006,14 @@ export default function ProductionMapPage() {
     if (targetColumnId) {
       const draggedCard = cards?.find((c) => c.id === active.id)
       if (draggedCard && draggedCard.status !== targetColumnId) {
+        // When moving to em_andamento after roteiro_aprovado, auto-set stage to em_edicao
+        const updates: Record<string, unknown> = { status: targetColumnId }
+        if (targetColumnId === 'em_andamento' && draggedCard.stage_tag === 'roteiro_aprovado') {
+          updates.stage_tag = 'em_edicao'
+        }
         await updateCard.mutateAsync({
           cardId: active.id as string,
-          data: { status: targetColumnId },
+          data: updates,
         })
       }
     }
@@ -803,7 +1032,6 @@ export default function ProductionMapPage() {
     setShowModal(true)
   }
 
-  // canDelete: admin/consultant can always delete; client can only delete their own cards
   const canDelete = canSeeInternalNotes || editingCard?.created_by === user?.id
 
   return (
@@ -811,14 +1039,14 @@ export default function ProductionMapPage() {
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-empire-gold text-sm tracking-widest uppercase mb-1">Fase 3</p>
-          <h1 className="font-display text-3xl font-semibold text-empire-text">Mapa de Produção</h1>
-          <p className="text-empire-text/60 mt-1 text-sm">
-            Gerencie seus conteúdos por etapa de produção.
+          <div className="section-label">Fase 3</div>
+          <h1 className="font-display text-[2.5rem] font-bold text-empire-ink tracking-[-0.02em] leading-tight">Mapa de Produção</h1>
+          <p className="text-empire-steel/60 mt-1 text-sm">
+            Gerencie seus conteúdos por etapa de produção. O fluxo de aprovação é em duas etapas: Roteiro e Edição/Design.
           </p>
         </div>
         <button
-          onClick={() => openNewCard('ideia')}
+          onClick={() => openNewCard('a_fazer')}
           className="btn-premium"
         >
           <Plus className="w-4 h-4" />
@@ -826,20 +1054,37 @@ export default function ProductionMapPage() {
         </button>
       </div>
 
+      {/* Flow indicator */}
+      <div className="bg-empire-bone border border-empire-ghost px-4 py-3">
+        <div className="flex items-center gap-2 text-xs text-empire-steel/50">
+          <span className="text-empire-steel/80 font-medium">Fluxo:</span>
+          <span>A Fazer</span>
+          <span>→</span>
+          <span>Em Andamento</span>
+          <span>→</span>
+          <span>Aprovação</span>
+          <span className="text-empire-gold">→ Roteiro Aprovado → volta para A Fazer →</span>
+          <span>Em Andamento</span>
+          <span>→</span>
+          <span>Aprovação</span>
+          <span className="text-emerald-400">→ Aprovado Final (Distribuição)</span>
+        </div>
+      </div>
+
       {/* Importer for admin/consultant */}
-      {clientId && (
+      {clientId && canSeeInternalNotes && (
         <div className="max-w-xl">
           <ProductionMapUploader clientId={clientId} />
         </div>
       )}
 
-      {/* Kanban Board */}
+      {/* Kanban Board — 3 columns */}
       {isLoading ? (
-        <div className="flex gap-4 overflow-x-auto pb-4">
-          {COLUMNS.map((col) => (
+        <div className="grid grid-cols-3 gap-4">
+          {PRODUCTION_COLUMNS.map((col) => (
             <div
               key={col.id}
-              className="w-64 flex-shrink-0 h-96 bg-empire-card border border-empire-border animate-pulse"
+              className="h-96 bg-empire-bone border border-empire-ghost animate-pulse"
             />
           ))}
         </div>
@@ -849,24 +1094,26 @@ export default function ProductionMapPage() {
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
         >
-          <div className="flex gap-4 overflow-x-auto pb-4">
-            {COLUMNS.map((column) => (
-              <div key={column.id} className="w-64 flex-shrink-0">
-                <KanbanColumn
-                  column={column}
-                  cards={getColumnCards(column.id)}
-                  activeId={activeId}
-                  onAddCard={() => openNewCard(column.id)}
-                  onCardClick={openEditCard}
-                />
-              </div>
+          <div className="grid grid-cols-3 gap-4">
+            {PRODUCTION_COLUMNS.map((column) => (
+              <KanbanColumn
+                key={column.id}
+                column={column}
+                cards={getColumnCards(column.id)}
+                activeId={activeId}
+                onAddCard={() => openNewCard(column.id)}
+                onCardClick={openEditCard}
+              />
             ))}
           </div>
 
           <DragOverlay>
             {activeCard && (
-              <div className="bg-empire-bg border border-empire-gold/40 p-3 shadow-xl w-64 opacity-90">
-                <p className="text-empire-text text-sm font-medium">{activeCard.title}</p>
+              <div className="bg-empire-surface border border-empire-gold/40 p-3 shadow-xl w-64 opacity-90">
+                {activeCard.content_id && (
+                  <span className="text-[10px] text-empire-gold/60 font-mono">{activeCard.content_id}</span>
+                )}
+                <p className="text-empire-ink text-sm font-medium">{activeCard.title}</p>
               </div>
             )}
           </DragOverlay>

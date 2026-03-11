@@ -1,5 +1,5 @@
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+// No external imports — uses native Deno fetch + Supabase REST API directly
+// This allows deployment via Management API (not just CLI)
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -10,15 +10,24 @@ const OPENROUTER_API_KEY = Deno.env.get('OPENROUTER_API_KEY') ?? ''
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? ''
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
 
-interface ProcessRequest {
-  client_id: string
-  type: 'risk_map' | 'brand_book' | 'editorial_line'
-}
+const RISK_MAP_PROMPT = `Você é um especialista em diagnóstico de posicionamento e autoridade para criadores de conteúdo e especialistas que vendem serviços de alto valor.
 
-const SYSTEM_PROMPTS: Record<string, string> = {
-  risk_map: `Você é um especialista em diagnóstico estratégico de negócios digitais e posicionamento de autoridade.
+Analise o documento Markdown fornecido e gere um diagnóstico estruturado em EXATAMENTE 5 dimensões, com EXATAMENTE estes IDs e labels — não altere nenhum deles:
 
-Analise o documento Markdown fornecido e gere um diagnóstico estruturado em EXATAMENTE 5 dimensões de risco/oportunidade. Escolha as 5 dimensões mais relevantes para o negócio/perfil descrito no documento. Exemplos de dimensões: Posicionamento, Audiência, Oferta, Autoridade, Operação, Crescimento, Presença Digital, Maturidade Comercial — use as que fizerem mais sentido para o contexto.
+1. id: "posicionamento" | label: "Posicionamento"
+   — O perfil/negócio comunica claramente quem é, para quem fala e qual problema resolve? Bio, linha editorial, consistência temática.
+
+2. id: "autoridade_percebida" | label: "Autoridade Percebida"
+   — Existem provas concretas de resultado? Cases, depoimentos com números, resultados próprios documentados.
+
+3. id: "fit_audiencia_oferta" | label: "Fit Audiência–Oferta"
+   — O público que acompanha esse negócio tem perfil de quem compraria o serviço/produto oferecido? Engajamento qualitativo, perguntas, perfil do público.
+
+4. id: "maturidade_comercial" | label: "Maturidade Comercial"
+   — O negócio já vendeu algo? Sabe descrever sua oferta em termos de resultado? Histórico de precificação e vendas.
+
+5. id: "risco_reposicionamento" | label: "Risco de Reposicionamento"
+   — Se quiser lançar algo novo ou mais caro, o quanto isso contraria o que a audiência espera? Consistência entre o que comunica e o que quer vender.
 
 Para cada dimensão, atribua um score de 1.0 a 5.0 (use decimais como 2.5, 3.5):
 - 1.0–2.4 = Crítico (risco alto, ação urgente)
@@ -27,29 +36,61 @@ Para cada dimensão, atribua um score de 1.0 a 5.0 (use decimais como 2.5, 3.5):
 
 Baseie TODA a análise exclusivamente nos dados do documento fornecido. Cite trechos reais para fundamentar os scores.
 
-Retorne APENAS um JSON válido, sem texto antes ou depois, sem markdown, sem backticks:
+Responda APENAS com um JSON válido, sem texto antes ou depois, sem markdown, sem backticks:
 {
-  "perfil_resumo": "Uma frase descrevendo o negócio ou cliente analisado",
+  "perfil_resumo": "Uma frase descrevendo o negócio ou cliente analisado em linguagem direta",
   "dimensoes": [
     {
-      "id": "snake_case_id",
-      "label": "Nome da Dimensão",
+      "id": "posicionamento",
+      "label": "Posicionamento",
       "score": 3.5,
       "justificativa": "Justificativa baseada nos dados do documento. Cite trechos específicos.",
       "evidencias": ["Evidência 1 extraída do documento", "Evidência 2 extraída do documento"],
       "recomendacao": "O que fazer agora — direto ao ponto, sem rodeios."
+    },
+    {
+      "id": "autoridade_percebida",
+      "label": "Autoridade Percebida",
+      "score": 2.0,
+      "justificativa": "...",
+      "evidencias": ["...", "..."],
+      "recomendacao": "..."
+    },
+    {
+      "id": "fit_audiencia_oferta",
+      "label": "Fit Audiência–Oferta",
+      "score": 4.0,
+      "justificativa": "...",
+      "evidencias": ["...", "..."],
+      "recomendacao": "..."
+    },
+    {
+      "id": "maturidade_comercial",
+      "label": "Maturidade Comercial",
+      "score": 1.5,
+      "justificativa": "...",
+      "evidencias": ["...", "..."],
+      "recomendacao": "..."
+    },
+    {
+      "id": "risco_reposicionamento",
+      "label": "Risco de Reposicionamento",
+      "score": 3.0,
+      "justificativa": "...",
+      "evidencias": ["...", "..."],
+      "recomendacao": "..."
     }
   ],
   "score_global": 2.8,
-  "veredito": "Frase direta e honesta sobre o estado atual do negócio e o principal desafio a resolver.",
+  "veredito": "Uma frase direta sobre se o negócio está apto ou não para o próximo passo comercial.",
   "prioridades": [
     "Prioridade 1 — a ação mais urgente e de maior impacto",
     "Prioridade 2 — segunda ação mais importante",
     "Prioridade 3 — terceira ação recomendada"
   ]
-}`,
+}`
 
-  brand_book: `Você é um especialista em branding e identidade de marca.
+const BRAND_BOOK_PROMPT = `Você é um especialista em branding e identidade de marca.
 Analise o documento Markdown fornecido e extraia os dados estruturados do Brand Book.
 Retorne um JSON com EXATAMENTE a seguinte estrutura (use null para campos ausentes):
 {
@@ -72,9 +113,9 @@ Retorne um JSON com EXATAMENTE a seguinte estrutura (use null para campos ausent
   "sections": [
     { "title": "título da seção extra", "content": "conteúdo da seção" }
   ]
-}`,
+}`
 
-  editorial_line: `Você é um estrategista de conteúdo digital.
+const EDITORIAL_LINE_PROMPT = `Você é um estrategista de conteúdo digital.
 Analise o documento Markdown fornecido e extraia os dados estruturados da Linha Editorial.
 Retorne um JSON com a seguinte estrutura:
 {
@@ -84,7 +125,7 @@ Retorne um JSON com a seguinte estrutura:
       "id": "string",
       "name": "string",
       "description": "string",
-      "percentage": number,
+      "percentage": 0,
       "examples": ["string"]
     }
   ],
@@ -98,20 +139,50 @@ Retorne um JSON com a seguinte estrutura:
   ],
   "formats": ["string"],
   "posting_frequency": {
-    "weekly_posts": number,
+    "weekly_posts": 0,
     "best_times": ["string"]
   },
   "kpis": ["string"]
-}`,
+}`
+
+const SYSTEM_PROMPTS: Record<string, string> = {
+  risk_map: RISK_MAP_PROMPT,
+  brand_book: BRAND_BOOK_PROMPT,
+  editorial_line: EDITORIAL_LINE_PROMPT,
 }
 
-serve(async (req) => {
+async function supabaseGet(path: string) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    headers: {
+      'apikey': SUPABASE_SERVICE_ROLE_KEY,
+      'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+      'Content-Type': 'application/json',
+    },
+  })
+  return res.json()
+}
+
+async function supabasePatch(path: string, body: unknown) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    method: 'PATCH',
+    headers: {
+      'apikey': SUPABASE_SERVICE_ROLE_KEY,
+      'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=minimal',
+    },
+    body: JSON.stringify(body),
+  })
+  return res
+}
+
+Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
-    const { client_id, type }: ProcessRequest = await req.json()
+    const { client_id, type } = await req.json()
 
     if (!client_id || !type) {
       return new Response(
@@ -120,22 +191,19 @@ serve(async (req) => {
       )
     }
 
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
-
     // Fetch the deliverable with raw_markdown
-    const { data: deliverable, error: fetchError } = await supabase
-      .from('deliverables')
-      .select('id, raw_markdown')
-      .eq('client_id', client_id)
-      .eq('type', type)
-      .single()
+    const rows = await supabaseGet(
+      `deliverables?client_id=eq.${client_id}&type=eq.${type}&select=id,raw_markdown&limit=1`
+    )
 
-    if (fetchError || !deliverable) {
+    if (!rows || rows.length === 0 || rows.error) {
       return new Response(
         JSON.stringify({ error: 'Deliverable não encontrado' }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
+
+    const deliverable = rows[0]
 
     if (!deliverable.raw_markdown) {
       return new Response(
@@ -145,10 +213,7 @@ serve(async (req) => {
     }
 
     // Mark as in_progress
-    await supabase
-      .from('deliverables')
-      .update({ status: 'in_progress' })
-      .eq('id', deliverable.id)
+    await supabasePatch(`deliverables?id=eq.${deliverable.id}`, { status: 'in_progress' })
 
     // Call OpenRouter API
     const systemPrompt = SYSTEM_PROMPTS[type]
@@ -162,7 +227,7 @@ serve(async (req) => {
         'X-Title': 'Empire Maps',
       },
       body: JSON.stringify({
-        model: 'anthropic/claude-3.5-sonnet',
+        model: 'anthropic/claude-sonnet-4.6',
         messages: [
           { role: 'system', content: systemPrompt },
           {
@@ -185,22 +250,14 @@ serve(async (req) => {
 
     let processedJson: unknown
     try {
-      processedJson = JSON.parse(rawContent)
+      const cleaned = rawContent.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim()
+      processedJson = JSON.parse(cleaned)
     } catch {
       processedJson = { raw: rawContent }
     }
 
     // Save processed result — keeps status as in_progress for consultant review
-    const { error: updateError } = await supabase
-      .from('deliverables')
-      .update({
-        processed_json: processedJson,
-      })
-      .eq('id', deliverable.id)
-
-    if (updateError) {
-      throw new Error(`Erro ao salvar resultado: ${updateError.message}`)
-    }
+    await supabasePatch(`deliverables?id=eq.${deliverable.id}`, { processed_json: processedJson })
 
     return new Response(
       JSON.stringify({ success: true, type, client_id }),

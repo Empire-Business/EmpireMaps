@@ -20,9 +20,12 @@ Extraia cada conteúdo/peça mencionado e retorne um JSON com a seguinte estrutu
       "description": "string | null — descrição ou detalhes",
       "channel": "string | null — canal (Instagram, YouTube, LinkedIn, TikTok, Twitter/X, Facebook, Pinterest, Blog, Email, Outro)",
       "format_free": "string | null — formato livre do conteúdo (ex: Reels, Carrossel, Post, Vídeo, etc)",
-      "status": "ideia" | "em_producao" | "revisao" | "agendado" | "publicado",
+      "status": "a_fazer" | "em_andamento" | "aprovacao",
+      "stage_tag": "aguardando_roteiro" | "roteiro_aprovado" | "em_edicao" | "aprovado_final",
       "production_date": "string | null — formato YYYY-MM-DD se mencionado",
       "publish_date": "string | null — formato YYYY-MM-DD se mencionado",
+      "scriptwriter": "string | null — roteirista mencionado",
+      "editor_name": "string | null — editor mencionado",
       "responsible": "string | null — responsável mencionado",
       "labels": ["string"] | null — palavras-chave relevantes
     }
@@ -108,9 +111,14 @@ serve(async (req) => {
         description: c.description ? String(c.description) : null,
         channel: c.channel ? String(c.channel) : null,
         format_free: c.format_free ? String(c.format_free) : null,
-        status: ['ideia', 'em_producao', 'revisao', 'agendado', 'publicado'].includes(String(c.status))
+        status: ['a_fazer', 'em_andamento', 'aprovacao'].includes(String(c.status))
           ? String(c.status)
-          : 'ideia',
+          : 'a_fazer',
+        stage_tag: ['aguardando_roteiro', 'roteiro_aprovado', 'em_edicao', 'aprovado_final'].includes(String(c.stage_tag))
+          ? String(c.stage_tag)
+          : 'aguardando_roteiro',
+        scriptwriter: c.scriptwriter ? String(c.scriptwriter) : null,
+        editor_name: c.editor_name ? String(c.editor_name) : null,
         production_date: c.production_date ? String(c.production_date) : null,
         publish_date: c.publish_date ? String(c.publish_date) : null,
         responsible: c.responsible ? String(c.responsible) : null,

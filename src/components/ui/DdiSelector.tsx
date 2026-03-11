@@ -65,29 +65,29 @@ export function DdiSelector({ value, onChange, disabled }: DdiSelectorProps) {
         disabled={disabled}
         onClick={() => setOpen((o) => !o)}
         className={cn(
-          'flex items-center gap-2 bg-empire-surface border border-empire-border text-empire-text px-3 py-2.5 text-sm',
+          'flex items-center gap-2 bg-empire-mist border border-empire-ghost text-empire-ink px-3 py-2.5 text-sm',
           'focus:outline-none focus:border-empire-gold/50 transition-colors',
           'disabled:opacity-70 disabled:cursor-not-allowed',
           open && 'border-empire-gold/50'
         )}
       >
         <span>{selected.flag}</span>
-        <span className="text-empire-text/70">{selected.code}</span>
-        <ChevronDown className={cn('w-3.5 h-3.5 text-empire-text/40 transition-transform', open && 'rotate-180')} />
+        <span className="text-empire-steel/80">{selected.code}</span>
+        <ChevronDown className={cn('w-3.5 h-3.5 text-empire-steel/40 transition-transform', open && 'rotate-180')} />
       </button>
 
       {open && (
-        <div className="absolute top-full left-0 z-50 mt-1 w-64 bg-empire-card border border-empire-border shadow-xl">
+        <div className="absolute top-full left-0 z-50 mt-1 w-64 bg-empire-surface border border-empire-ghost shadow-xl">
           {/* Search */}
-          <div className="p-2 border-b border-empire-border">
+          <div className="p-2 border-b border-empire-ghost">
             <div className="relative">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-empire-text/30" />
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-empire-steel/30" />
               <input
                 autoFocus
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Buscar país..."
-                className="w-full bg-empire-surface border border-empire-border text-empire-text placeholder:text-empire-text/30 pl-8 pr-3 py-1.5 text-xs focus:outline-none focus:border-empire-gold/50 transition-colors"
+                className="w-full bg-empire-mist border border-empire-ghost text-empire-ink placeholder:text-empire-steel/30 pl-8 pr-3 py-1.5 text-xs focus:outline-none focus:border-empire-gold/50 transition-colors"
               />
             </div>
           </div>
@@ -95,7 +95,7 @@ export function DdiSelector({ value, onChange, disabled }: DdiSelectorProps) {
           {/* List */}
           <div className="max-h-52 overflow-y-auto">
             {filtered.length === 0 ? (
-              <p className="text-center text-empire-text/40 text-xs py-4">Nenhum resultado</p>
+              <p className="text-center text-empire-steel/40 text-xs py-4">Nenhum resultado</p>
             ) : (
               filtered.map((ddi) => (
                 <button
@@ -110,12 +110,12 @@ export function DdiSelector({ value, onChange, disabled }: DdiSelectorProps) {
                     'w-full flex items-center gap-3 px-3 py-2 text-sm text-left transition-colors',
                     ddi.code === value
                       ? 'bg-empire-gold/10 text-empire-gold'
-                      : 'text-empire-text/70 hover:bg-empire-surface hover:text-empire-text'
+                      : 'text-empire-steel/80 hover:bg-empire-mist hover:text-empire-ink'
                   )}
                 >
                   <span className="text-base">{ddi.flag}</span>
                   <span className="flex-1 text-xs">{ddi.name}</span>
-                  <span className="text-xs text-empire-text/40">{ddi.code}</span>
+                  <span className="text-xs text-empire-steel/40">{ddi.code}</span>
                 </button>
               ))
             )}

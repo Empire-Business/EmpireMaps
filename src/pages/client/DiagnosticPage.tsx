@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Lock, Send, Unlock } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
-import { useImpersonation } from '@/contexts/ImpersonationContext'
+import { useEffectiveClientId } from '@/hooks/useEffectiveClientId'
 import { useDiagnostic, useSaveDiagnostic, useSubmitDiagnostic, useUnlockDiagnostic } from '@/hooks/useDiagnostic'
 import { DdiSelector } from '@/components/ui/DdiSelector'
 import { formatDateTime } from '@/lib/utils'
@@ -52,11 +52,8 @@ function parseSocialLinks(json: Json): Partial<Record<string, string>> {
 }
 
 export default function DiagnosticPage() {
-  const { user, profile } = useAuth()
-  const { impersonatedClient } = useImpersonation()
-
-  const effectiveProfile = impersonatedClient ?? profile
-  const clientId = effectiveProfile?.id ?? user?.id
+  const { profile } = useAuth()
+  const clientId = useEffectiveClientId()
   const canEdit = profile?.role === 'admin' || profile?.role === 'consultant'
 
   const { data: diagnostic, isLoading } = useDiagnostic(clientId)
@@ -161,11 +158,11 @@ export default function DiagnosticPage() {
   if (isLoading) {
     return (
       <div className="p-8 space-y-4 max-w-3xl">
-        <div className="h-8 w-48 bg-empire-card animate-pulse" />
-        <div className="h-4 w-72 bg-empire-card animate-pulse" />
-        <div className="h-px bg-empire-border mt-6" />
+        <div className="h-8 w-48 bg-empire-bone animate-pulse" />
+        <div className="h-4 w-72 bg-empire-bone animate-pulse" />
+        <div className="h-px bg-empire-ghost mt-6" />
         {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="h-12 bg-empire-card animate-pulse" />
+          <div key={i} className="h-12 bg-empire-bone animate-pulse" />
         ))}
       </div>
     )
@@ -175,17 +172,17 @@ export default function DiagnosticPage() {
     <div className="p-8 max-w-3xl">
       {/* Header */}
       <div className="mb-8">
-        <p className="text-empire-gold text-sm tracking-widest uppercase mb-1">Fase 1</p>
-        <h1 className="font-display text-3xl font-semibold text-empire-text">Diagnóstico</h1>
-        <p className="text-empire-text/60 mt-1 text-sm">
+        <div className="section-label">Fase 1</div>
+        <h1 className="font-display text-[2.5rem] font-bold text-empire-ink tracking-[-0.02em] leading-tight">Diagnóstico</h1>
+        <p className="text-empire-steel/60 mt-1 text-sm">
           Preencha as informações abaixo para que possamos entender seu negócio.
         </p>
 
         {isLocked && diagnostic?.submitted_at && (
-          <div className="mt-4 flex items-center justify-between bg-emerald-500/10 border border-emerald-500/20 px-4 py-3">
+          <div className="mt-4 flex items-center justify-between bg-[rgba(45,125,74,0.1)] border border-[rgba(45,125,74,0.2)] rounded-sm px-4 py-3">
             <div className="flex items-center gap-2">
-              <Lock className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-              <p className="text-emerald-400 text-sm">
+              <Lock className="w-4 h-4 text-empire-success flex-shrink-0" />
+              <p className="text-empire-success text-sm">
                 Formulário enviado em {formatDateTime(diagnostic.submitted_at)}.
                 {canEdit && ' (Você pode editar como admin/consultor.)'}
               </p>
@@ -204,41 +201,41 @@ export default function DiagnosticPage() {
         )}
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+      <form onSubmit={handleSubmit(onSubmit)} className="bg-empire-surface rounded-lg border border-empire-ghost p-8 space-y-8">
         {/* Dados pessoais */}
         <section className="space-y-4">
-          <h2 className="text-sm font-medium text-empire-text/70 uppercase tracking-wider border-b border-empire-border pb-2">
+          <h2 className="text-sm font-medium text-empire-ink uppercase tracking-wider border-b border-empire-ghost pb-2">
             Dados Pessoais
           </h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm text-empire-text/70 mb-1.5">Nome completo *</label>
+              <label className="block text-[13px] font-medium text-empire-ink tracking-[0.02em] mb-1.5">Nome completo *</label>
               <input
                 {...register('full_name')}
                 readOnly={readOnly}
-                className="w-full bg-empire-surface border border-empire-border text-empire-text px-4 py-2.5 text-sm focus:outline-none focus:border-empire-gold/50 transition-colors read-only:opacity-70 read-only:cursor-default"
+                className="w-full bg-empire-mist border-[1.5px] border-empire-ghost rounded-sm text-empire-ink px-3.5 py-2.5 text-base focus:outline-none focus:bg-empire-surface focus:border-empire focus:shadow-[0_0_0_3px_rgba(13,24,41,0.08)] transition-all read-only:opacity-70 read-only:cursor-default"
                 placeholder="Seu nome completo"
               />
-              {errors.full_name && <p className="text-red-400 text-xs mt-1">{errors.full_name.message}</p>}
+              {errors.full_name && <p className="text-empire-danger text-xs mt-1">{errors.full_name.message}</p>}
             </div>
 
             <div>
-              <label className="block text-sm text-empire-text/70 mb-1.5">E-mail *</label>
+              <label className="block text-[13px] font-medium text-empire-ink tracking-[0.02em] mb-1.5">E-mail *</label>
               <input
                 {...register('email')}
                 type="email"
                 readOnly={readOnly}
-                className="w-full bg-empire-surface border border-empire-border text-empire-text px-4 py-2.5 text-sm focus:outline-none focus:border-empire-gold/50 transition-colors read-only:opacity-70 read-only:cursor-default"
+                className="w-full bg-empire-mist border-[1.5px] border-empire-ghost rounded-sm text-empire-ink px-3.5 py-2.5 text-base focus:outline-none focus:bg-empire-surface focus:border-empire focus:shadow-[0_0_0_3px_rgba(13,24,41,0.08)] transition-all read-only:opacity-70 read-only:cursor-default"
                 placeholder="seu@email.com"
               />
-              {errors.email && <p className="text-red-400 text-xs mt-1">{errors.email.message}</p>}
+              {errors.email && <p className="text-empire-danger text-xs mt-1">{errors.email.message}</p>}
             </div>
           </div>
 
           {/* WhatsApp */}
           <div>
-            <label className="block text-sm text-empire-text/70 mb-1.5">WhatsApp *</label>
+            <label className="block text-[13px] font-medium text-empire-ink tracking-[0.02em] mb-1.5">WhatsApp *</label>
             <div className="flex gap-2">
               <Controller
                 name="whatsapp_ddi"
@@ -254,19 +251,19 @@ export default function DiagnosticPage() {
               <input
                 {...register('whatsapp_ddd')}
                 readOnly={readOnly}
-                className="w-20 bg-empire-surface border border-empire-border text-empire-text px-4 py-2.5 text-sm focus:outline-none focus:border-empire-gold/50 transition-colors read-only:opacity-70 read-only:cursor-default"
+                className="w-20 bg-empire-mist border border-empire-ghost text-empire-ink px-4 py-2.5 text-sm focus:outline-none focus:border-empire-gold/50 transition-colors read-only:opacity-70 read-only:cursor-default"
                 placeholder="DDD"
                 maxLength={3}
               />
               <input
                 {...register('whatsapp_num')}
                 readOnly={readOnly}
-                className="flex-1 bg-empire-surface border border-empire-border text-empire-text px-4 py-2.5 text-sm focus:outline-none focus:border-empire-gold/50 transition-colors read-only:opacity-70 read-only:cursor-default"
+                className="flex-1 bg-empire-mist border border-empire-ghost text-empire-ink px-4 py-2.5 text-sm focus:outline-none focus:border-empire-gold/50 transition-colors read-only:opacity-70 read-only:cursor-default"
                 placeholder="00000-0000"
               />
             </div>
             {(errors.whatsapp_ddd || errors.whatsapp_num) && (
-              <p className="text-red-400 text-xs mt-1">
+              <p className="text-empire-danger text-xs mt-1">
                 {errors.whatsapp_ddd?.message ?? errors.whatsapp_num?.message}
               </p>
             )}
@@ -275,18 +272,18 @@ export default function DiagnosticPage() {
 
         {/* Redes sociais */}
         <section className="space-y-4">
-          <h2 className="text-sm font-medium text-empire-text/70 uppercase tracking-wider border-b border-empire-border pb-2">
+          <h2 className="text-sm font-medium text-empire-ink uppercase tracking-wider border-b border-empire-ghost pb-2">
             Redes Sociais
           </h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {SOCIAL_FIELDS.map((field) => (
               <div key={field.key}>
-                <label className="block text-sm text-empire-text/70 mb-1.5">{field.label}</label>
+                <label className="block text-[13px] font-medium text-empire-ink tracking-[0.02em] mb-1.5">{field.label}</label>
                 <input
                   {...register(field.key)}
                   readOnly={readOnly}
-                  className="w-full bg-empire-surface border border-empire-border text-empire-text px-4 py-2.5 text-sm focus:outline-none focus:border-empire-gold/50 transition-colors read-only:opacity-70 read-only:cursor-default"
+                  className="w-full bg-empire-mist border-[1.5px] border-empire-ghost rounded-sm text-empire-ink px-3.5 py-2.5 text-base focus:outline-none focus:bg-empire-surface focus:border-empire focus:shadow-[0_0_0_3px_rgba(13,24,41,0.08)] transition-all read-only:opacity-70 read-only:cursor-default"
                   placeholder={field.placeholder}
                 />
               </div>
@@ -296,19 +293,19 @@ export default function DiagnosticPage() {
 
         {/* Objetivos */}
         <section className="space-y-4">
-          <h2 className="text-sm font-medium text-empire-text/70 uppercase tracking-wider border-b border-empire-border pb-2">
+          <h2 className="text-sm font-medium text-empire-ink uppercase tracking-wider border-b border-empire-ghost pb-2">
             Objetivos
           </h2>
 
           <div>
-            <label className="block text-sm text-empire-text/70 mb-1.5">
+            <label className="block text-[13px] font-medium text-empire-ink tracking-[0.02em] mb-1.5">
               O que você quer alcançar com sua presença digital?
             </label>
             <textarea
               {...register('objectives')}
               readOnly={readOnly}
               rows={5}
-              className="w-full bg-empire-surface border border-empire-border text-empire-text px-4 py-2.5 text-sm focus:outline-none focus:border-empire-gold/50 transition-colors resize-none read-only:opacity-70 read-only:cursor-default"
+              className="w-full bg-empire-mist border border-empire-ghost text-empire-ink px-4 py-2.5 text-sm focus:outline-none focus:border-empire-gold/50 transition-colors resize-none read-only:opacity-70 read-only:cursor-default"
               placeholder="Descreva seus objetivos, metas e expectativas..."
             />
           </div>
@@ -316,15 +313,15 @@ export default function DiagnosticPage() {
 
         {/* Auto-save indicator */}
         {!readOnly && (
-          <div className="flex items-center gap-2 text-xs text-empire-text/40">
+          <div className="flex items-center gap-2 text-xs text-empire-steel/40">
             {saveMutation.isPending && (
               <>
-                <div className="w-3 h-3 border border-empire-text/30 border-t-empire-gold/50 rounded-full animate-spin" />
+                <div className="w-3 h-3 border border-empire-ink/30 border-t-empire-gold/50 rounded-full animate-spin" />
                 Salvando automaticamente...
               </>
             )}
             {saveMutation.isSuccess && !saveMutation.isPending && (
-              <span className="text-emerald-400/70">Salvo automaticamente</span>
+              <span className="text-empire-success/70">Salvo automaticamente</span>
             )}
           </div>
         )}
@@ -340,7 +337,7 @@ export default function DiagnosticPage() {
               <Send className="w-4 h-4" />
               {isSubmitting || submitMutation.isPending ? 'Enviando...' : 'Enviar Diagnóstico'}
             </button>
-            <p className="text-empire-text/40 text-xs mt-2">
+            <p className="text-empire-steel/40 text-xs mt-2">
               Após enviar, o formulário ficará bloqueado para edição.
             </p>
           </div>

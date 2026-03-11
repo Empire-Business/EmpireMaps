@@ -159,6 +159,20 @@ function RadarChart({ dimensoes }: { dimensoes: RiskDimension[] }) {
   )
 }
 
+// ─── Dimension icons ──────────────────────────────────────────────────────────
+
+const DIMENSION_ICONS: Record<string, string> = {
+  posicionamento: '◎',
+  autoridade_percebida: '◈',
+  fit_audiencia_oferta: '◐',
+  maturidade_comercial: '◑',
+  risco_reposicionamento: '◒',
+}
+
+function getDimIcon(id: string) {
+  return DIMENSION_ICONS[id] ?? '◉'
+}
+
 // ─── Dimension Score Bar ───────────────────────────────────────────────────────
 
 function DimensionScoreBar({ dim }: { dim: RiskDimension }) {
@@ -168,7 +182,10 @@ function DimensionScoreBar({ dim }: { dim: RiskDimension }) {
   return (
     <div>
       <div className="flex items-center justify-between mb-1.5">
-        <span className="text-sm text-empire-text/80 font-medium">{dim.label}</span>
+        <span className="text-sm text-empire-steel font-medium">
+          <span className="mr-1.5 opacity-60">{getDimIcon(dim.id)}</span>
+          {dim.label}
+        </span>
         <div className="flex items-center gap-2">
           <span className={cn('font-mono text-sm font-bold', cfg.text)}>{dim.score.toFixed(1)}</span>
           <span className={cn('text-[9px] font-mono font-bold tracking-widest px-1.5 py-0.5 border', cfg.text, cfg.bg, cfg.border)}>
@@ -176,7 +193,7 @@ function DimensionScoreBar({ dim }: { dim: RiskDimension }) {
           </span>
         </div>
       </div>
-      <div className="h-1.5 bg-empire-surface rounded-full overflow-hidden">
+      <div className="h-1.5 bg-empire-mist rounded-full overflow-hidden">
         <div
           className="h-full rounded-full transition-all duration-700"
           style={{ width: `${pct}%`, backgroundColor: cfg.hex }}
@@ -193,14 +210,14 @@ function DimensionCard({ dim, index }: { dim: RiskDimension; index: number }) {
 
   return (
     <div className={cn(
-      'bg-empire-card border border-empire-border border-l-4 p-6',
+      'bg-empire-bone border border-empire-ghost border-l-4 p-6',
       cfg.borderLeft
     )}>
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
-          <span className="font-mono text-xs text-empire-text/30 tabular-nums">{String(index + 1).padStart(2, '0')}</span>
-          <h3 className="font-display text-lg font-semibold text-empire-text">{dim.label}</h3>
+          <span className="text-xl opacity-50" style={{ color: cfg.hex }}>{getDimIcon(dim.id)}</span>
+          <h3 className="font-display text-lg font-semibold text-empire-ink">{dim.label}</h3>
         </div>
         <div className="text-right shrink-0">
           <div className={cn('font-display text-3xl font-semibold leading-none', cfg.text)}>
@@ -213,19 +230,19 @@ function DimensionCard({ dim, index }: { dim: RiskDimension; index: number }) {
       </div>
 
       {/* Justificativa */}
-      <p className="text-empire-text/60 text-sm leading-relaxed mb-4">{dim.justificativa}</p>
+      <p className="text-empire-steel/60 text-sm leading-relaxed mb-4">{dim.justificativa}</p>
 
       {/* Evidências */}
       {dim.evidencias && dim.evidencias.length > 0 && (
         <div className="mb-4">
-          <div className="font-mono text-[9px] text-empire-text/30 tracking-widest uppercase mb-2">
+          <div className="font-mono text-[9px] text-empire-steel/30 tracking-widest uppercase mb-2">
             Evidências dos dados
           </div>
           <div className="space-y-1.5">
             {dim.evidencias.map((ev, i) => (
               <div key={i} className="flex gap-2.5 items-start">
                 <span className={cn('text-xs shrink-0 mt-0.5', cfg.text)}>▸</span>
-                <span className="text-empire-text/50 text-sm leading-relaxed">{ev}</span>
+                <span className="text-empire-steel/50 text-sm leading-relaxed">{ev}</span>
               </div>
             ))}
           </div>
@@ -237,7 +254,7 @@ function DimensionCard({ dim, index }: { dim: RiskDimension; index: number }) {
         <div className={cn('font-mono text-[9px] tracking-widest uppercase font-bold mb-1.5', cfg.text)}>
           O que fazer agora
         </div>
-        <p className="text-empire-text/80 text-sm leading-relaxed">{dim.recomendacao}</p>
+        <p className="text-empire-steel text-sm leading-relaxed">{dim.recomendacao}</p>
       </div>
     </div>
   )
@@ -272,9 +289,9 @@ function RiskMapViewNew({ data }: { data: RiskMapDataNew }) {
   return (
     <div className="space-y-6">
       {/* Overview — radar + score bars */}
-      <div id="rm-overview" className="bg-empire-card border border-empire-border p-6 scroll-mt-8">
+      <div id="rm-overview" className="bg-empire-surface rounded-lg border border-empire-ghost p-6 scroll-mt-8">
         {data.perfil_resumo && (
-          <p className="text-empire-text/50 text-sm italic mb-6 leading-relaxed border-l-2 border-empire-gold/30 pl-4">
+          <p className="text-empire-steel/50 text-sm italic mb-6 leading-relaxed border-l-2 border-empire-gold/30 pl-4">
             {data.perfil_resumo}
           </p>
         )}
@@ -302,7 +319,7 @@ function RiskMapViewNew({ data }: { data: RiskMapDataNew }) {
 
           {/* Score bars */}
           <div className="flex-1 w-full space-y-4 min-w-0">
-            <div className="font-mono text-[9px] text-empire-text/30 tracking-widest uppercase mb-4">
+            <div className="font-mono text-[9px] text-empire-steel/30 tracking-widest uppercase mb-4">
               Pontuação por dimensão
             </div>
             {data.dimensoes.map(dim => (
@@ -330,14 +347,14 @@ function RiskMapViewNew({ data }: { data: RiskMapDataNew }) {
           </div>
 
           {data.veredito && (
-            <p className="font-display text-xl font-semibold text-empire-text leading-snug mb-6">
+            <p className="font-display text-xl font-semibold text-empire-ink leading-snug mb-6">
               {data.veredito}
             </p>
           )}
 
           {data.prioridades && data.prioridades.length > 0 && (
             <>
-              <div className="font-mono text-[9px] text-empire-text/30 tracking-widest uppercase mb-3">
+              <div className="font-mono text-[9px] text-empire-steel/30 tracking-widest uppercase mb-3">
                 Prioridades de ação
               </div>
               <div className="space-y-3">
@@ -349,7 +366,7 @@ function RiskMapViewNew({ data }: { data: RiskMapDataNew }) {
                     )}>
                       {i + 1}
                     </span>
-                    <span className="text-empire-text/70 text-sm leading-relaxed">{p}</span>
+                    <span className="text-empire-steel/80 text-sm leading-relaxed">{p}</span>
                   </div>
                 ))}
               </div>
@@ -379,16 +396,16 @@ function RiskMapViewLegacy({ data }: { data: RiskMapDataLegacy }) {
   return (
     <div className="space-y-8">
       {summary && (
-        <div id="rm-summary" className="bg-empire-card border border-empire-border p-6 scroll-mt-8">
-          <h2 className="font-display text-xl font-semibold text-empire-text mb-3">Sumário Executivo</h2>
-          <p className="text-empire-text/70 leading-relaxed">{summary}</p>
+        <div id="rm-summary" className="bg-empire-surface rounded-lg border border-empire-ghost p-6 scroll-mt-8">
+          <h2 className="font-display text-xl font-semibold text-empire-ink mb-3">Sumário Executivo</h2>
+          <p className="text-empire-steel/80 leading-relaxed">{summary}</p>
         </div>
       )}
       {risks && risks.length > 0 && (
         <div id="rm-risks" className="scroll-mt-8">
           <div className="flex items-center gap-2 mb-4">
             <AlertTriangle className="w-5 h-5 text-red-400" />
-            <h2 className="font-display text-xl font-semibold text-empire-text">Riscos Identificados</h2>
+            <h2 className="font-display text-xl font-semibold text-empire-ink">Riscos Identificados</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {risks.map((risk, i) => {
@@ -397,12 +414,12 @@ function RiskMapViewLegacy({ data }: { data: RiskMapDataLegacy }) {
               return (
                 <div key={i} className={cn('border p-4', config.cardClass)}>
                   <div className="flex items-start justify-between gap-3 mb-2">
-                    <h3 className="font-medium text-empire-text">{risk.title}</h3>
+                    <h3 className="font-medium text-empire-ink">{risk.title}</h3>
                     <span className={cn('text-xs px-2 py-0.5 flex-shrink-0', config.badgeClass)}>{config.label}</span>
                   </div>
-                  <p className="text-empire-text/60 text-sm leading-relaxed">{risk.description}</p>
+                  <p className="text-empire-steel/60 text-sm leading-relaxed">{risk.description}</p>
                   {risk.mitigation && (
-                    <p className="text-empire-text/40 text-xs mt-2 leading-relaxed italic">{risk.mitigation}</p>
+                    <p className="text-empire-steel/40 text-xs mt-2 leading-relaxed italic">{risk.mitigation}</p>
                   )}
                 </div>
               )
@@ -414,16 +431,16 @@ function RiskMapViewLegacy({ data }: { data: RiskMapDataLegacy }) {
         <div id="rm-opportunities" className="scroll-mt-8">
           <div className="flex items-center gap-2 mb-4">
             <TrendingUp className="w-5 h-5 text-emerald-400" />
-            <h2 className="font-display text-xl font-semibold text-empire-text">Oportunidades</h2>
+            <h2 className="font-display text-xl font-semibold text-empire-ink">Oportunidades</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {opportunities.map((opp, i) => (
               <div key={i} className="border border-emerald-500/30 bg-emerald-500/5 p-4">
                 <div className="flex items-start justify-between gap-3 mb-2">
-                  <h3 className="font-medium text-empire-text">{opp.title}</h3>
+                  <h3 className="font-medium text-empire-ink">{opp.title}</h3>
                   {opp.potential && <span className="text-xs px-2 py-0.5 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex-shrink-0">{opp.potential}</span>}
                 </div>
-                <p className="text-empire-text/60 text-sm leading-relaxed">{opp.description}</p>
+                <p className="text-empire-steel/60 text-sm leading-relaxed">{opp.description}</p>
               </div>
             ))}
           </div>
@@ -433,13 +450,13 @@ function RiskMapViewLegacy({ data }: { data: RiskMapDataLegacy }) {
         <div id="rm-recommendations" className="scroll-mt-8">
           <div className="flex items-center gap-2 mb-4">
             <Lightbulb className="w-5 h-5 text-empire-gold" />
-            <h2 className="font-display text-xl font-semibold text-empire-text">Recomendações</h2>
+            <h2 className="font-display text-xl font-semibold text-empire-ink">Recomendações</h2>
           </div>
           <div className="space-y-2">
             {recommendations.map((rec, i) => (
-              <div key={i} className="flex gap-3 items-start bg-empire-card border border-empire-border p-4">
+              <div key={i} className="flex gap-3 items-start bg-empire-bone border border-empire-ghost p-4">
                 <span className="text-empire-gold font-display text-sm flex-shrink-0 mt-0.5">{i + 1}.</span>
-                <p className="text-empire-text/70 text-sm leading-relaxed">{normalizeText(rec)}</p>
+                <p className="text-empire-steel/80 text-sm leading-relaxed">{normalizeText(rec)}</p>
               </div>
             ))}
           </div>
@@ -449,13 +466,13 @@ function RiskMapViewLegacy({ data }: { data: RiskMapDataLegacy }) {
         <div id="rm-highlights" className="scroll-mt-8">
           <div className="flex items-center gap-2 mb-4">
             <Star className="w-5 h-5 text-empire-gold" />
-            <h2 className="font-display text-xl font-semibold text-empire-text">Destaques</h2>
+            <h2 className="font-display text-xl font-semibold text-empire-ink">Destaques</h2>
           </div>
           <div className="space-y-2">
             {highlights.map((hl, i) => (
               <div key={i} className="flex gap-3 items-start bg-empire-gold/5 border border-empire-gold/20 p-4">
                 <Star className="w-4 h-4 text-empire-gold flex-shrink-0 mt-0.5" />
-                <p className="text-empire-text/70 text-sm leading-relaxed">{normalizeText(hl)}</p>
+                <p className="text-empire-steel/80 text-sm leading-relaxed">{normalizeText(hl)}</p>
               </div>
             ))}
           </div>

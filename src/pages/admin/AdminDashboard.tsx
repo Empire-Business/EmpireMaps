@@ -29,14 +29,14 @@ function StatCard({
   loading: boolean
 }) {
   return (
-    <div className="bg-empire-card border border-empire-border p-6 card-hover">
+    <div className="bg-empire-surface rounded-lg border border-empire-ghost p-8 card-hover cursor-pointer">
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-empire-text/60 text-sm mb-1">{label}</p>
+          <p className="text-empire-steel/60 text-sm mb-1">{label}</p>
           {loading ? (
-            <div className="h-9 w-16 bg-empire-surface animate-pulse rounded" />
+            <div className="h-9 w-16 bg-empire-mist animate-pulse rounded" />
           ) : (
-            <p className="text-3xl font-display font-semibold text-empire-text">{value}</p>
+            <p className="text-3xl font-display font-semibold text-empire-ink">{value}</p>
           )}
         </div>
         <div className="w-10 h-10 bg-empire-gold/10 flex items-center justify-center">
@@ -96,9 +96,9 @@ export default function AdminDashboard() {
     <div className="p-8 space-y-8">
       {/* Header */}
       <div>
-        <p className="text-empire-gold text-sm tracking-widest uppercase mb-1">Painel</p>
-        <h1 className="font-display text-3xl font-semibold text-empire-text">Dashboard</h1>
-        <p className="text-empire-text/60 mt-1 text-sm">Visão geral da plataforma</p>
+        <div className="section-label">Painel</div>
+        <h1 className="font-display text-[2.5rem] font-bold text-empire-ink tracking-[-0.02em] leading-tight">Dashboard</h1>
+        <p className="text-empire-steel/60 mt-2 text-base">Visão geral da plataforma</p>
       </div>
 
       {/* Stats */}
@@ -124,47 +124,45 @@ export default function AdminDashboard() {
       </div>
 
       {/* Diagnostics */}
-      <div className="bg-empire-card border border-empire-border">
-        <div className="px-6 py-4 border-b border-empire-border flex items-center gap-3">
+      <div className="ds-table-wrap">
+        <div className="px-6 py-4 border-b border-empire-ghost bg-empire-mist flex items-center gap-3">
           <ClipboardList className="w-4 h-4 text-empire-gold" />
-          <h2 className="text-sm font-medium text-empire-text">Diagnósticos Enviados</h2>
+          <h2 className="font-mono text-[11px] tracking-[0.12em] uppercase text-empire-steel/70 font-medium">Diagnósticos Enviados</h2>
         </div>
 
         {loadingDiagnostics ? (
           <div className="p-6 space-y-3">
             {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="h-10 bg-empire-surface animate-pulse rounded" />
+              <div key={i} className="h-10 bg-empire-mist animate-pulse rounded" />
             ))}
           </div>
         ) : !diagnostics || diagnostics.length === 0 ? (
           <div className="px-6 py-12 text-center">
-            <ClipboardList className="w-8 h-8 text-empire-text/20 mx-auto mb-3" />
-            <p className="text-empire-text/40 text-sm">Nenhum diagnóstico enviado ainda.</p>
+            <ClipboardList className="w-8 h-8 text-empire-ink/20 mx-auto mb-3" />
+            <p className="text-empire-steel/50 text-sm">Nenhum diagnóstico enviado ainda.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full ds-table">
               <thead>
-                <tr className="border-b border-empire-border">
-                  <th className="text-left px-6 py-3 text-empire-text/50 font-normal">Cliente</th>
-                  <th className="text-left px-6 py-3 text-empire-text/50 font-normal">Enviado em</th>
-                  <th className="text-left px-6 py-3 text-empire-text/50 font-normal">Status</th>
+                <tr>
+                  <th>Cliente</th>
+                  <th>Enviado em</th>
+                  <th>Status</th>
                 </tr>
               </thead>
               <tbody>
                 {diagnostics.map((d) => (
-                  <tr
-                    key={d.id}
-                    className="border-b border-empire-border/50 hover:bg-empire-surface/50 transition-colors"
-                  >
-                    <td className="px-6 py-3 text-empire-text">
+                  <tr key={d.id}>
+                    <td className="text-empire-ink font-medium">
                       {d.profile?.full_name ?? '—'}
                     </td>
-                    <td className="px-6 py-3 text-empire-text/60">
+                    <td className="text-empire-steel/60">
                       {d.submitted_at ? formatDateTime(d.submitted_at) : '—'}
                     </td>
-                    <td className="px-6 py-3">
-                      <span className="text-xs bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-2 py-0.5">
+                    <td>
+                      <span className="badge-success">
+                        <span className="w-[5px] h-[5px] rounded-full bg-empire-success" />
                         Enviado
                       </span>
                     </td>
@@ -177,52 +175,52 @@ export default function AdminDashboard() {
       </div>
 
       {/* Impersonation Logs */}
-      <div className="bg-empire-card border border-empire-border">
-        <div className="px-6 py-4 border-b border-empire-border flex items-center gap-3">
+      <div className="ds-table-wrap">
+        <div className="px-6 py-4 border-b border-empire-ghost bg-empire-mist flex items-center gap-3">
           <Activity className="w-4 h-4 text-empire-gold" />
-          <h2 className="text-sm font-medium text-empire-text">Últimas Impersonações</h2>
+          <h2 className="font-mono text-[11px] tracking-[0.12em] uppercase text-empire-steel/70 font-medium">Últimas Impersonações</h2>
         </div>
 
         {loadingLogs ? (
           <div className="p-6 space-y-3">
             {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="h-10 bg-empire-surface animate-pulse rounded" />
+              <div key={i} className="h-10 bg-empire-mist animate-pulse rounded" />
             ))}
           </div>
         ) : !impersonationLogs || impersonationLogs.length === 0 ? (
           <div className="px-6 py-12 text-center">
-            <Activity className="w-8 h-8 text-empire-text/20 mx-auto mb-3" />
-            <p className="text-empire-text/40 text-sm">Nenhuma atividade registrada ainda.</p>
+            <Activity className="w-8 h-8 text-empire-ink/20 mx-auto mb-3" />
+            <p className="text-empire-steel/50 text-sm">Nenhuma atividade registrada ainda.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full ds-table">
               <thead>
-                <tr className="border-b border-empire-border">
-                  <th className="text-left px-6 py-3 text-empire-text/50 font-normal">Consultor</th>
-                  <th className="text-left px-6 py-3 text-empire-text/50 font-normal">Cliente</th>
-                  <th className="text-left px-6 py-3 text-empire-text/50 font-normal">Início</th>
-                  <th className="text-left px-6 py-3 text-empire-text/50 font-normal">Fim</th>
+                <tr>
+                  <th>Consultor</th>
+                  <th>Cliente</th>
+                  <th>Início</th>
+                  <th>Fim</th>
                 </tr>
               </thead>
               <tbody>
                 {impersonationLogs.map((log) => (
-                  <tr
-                    key={log.id}
-                    className="border-b border-empire-border/50 hover:bg-empire-surface/50 transition-colors"
-                  >
-                    <td className="px-6 py-3 text-empire-text">
+                  <tr key={log.id}>
+                    <td className="text-empire-ink font-medium">
                       {log.consultant?.full_name ?? '—'}
                     </td>
-                    <td className="px-6 py-3 text-empire-text">
+                    <td className="text-empire-ink">
                       {log.client?.full_name ?? '—'}
                     </td>
-                    <td className="px-6 py-3 text-empire-text/60">
+                    <td className="text-empire-steel/60">
                       {formatDateTime(log.started_at)}
                     </td>
-                    <td className="px-6 py-3 text-empire-text/60">
+                    <td className="text-empire-steel/60">
                       {log.ended_at ? formatDateTime(log.ended_at) : (
-                        <span className="text-empire-gold text-xs">Em andamento</span>
+                        <span className="badge-warning">
+                          <span className="w-[5px] h-[5px] rounded-full bg-empire-gold" />
+                          Em andamento
+                        </span>
                       )}
                     </td>
                   </tr>
