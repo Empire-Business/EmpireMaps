@@ -205,7 +205,7 @@ function DimensionScoreBar({ dim }: { dim: RiskDimension }) {
 
 // ─── Dimension Card ────────────────────────────────────────────────────────────
 
-function DimensionCard({ dim, index }: { dim: RiskDimension; index: number }) {
+function DimensionCard({ dim }: { dim: RiskDimension }) {
   const cfg = getScoreConfig(dim.score)
 
   return (
@@ -330,9 +330,9 @@ function RiskMapViewNew({ data }: { data: RiskMapDataNew }) {
       </div>
 
       {/* Dimension cards */}
-      {data.dimensoes.map((dim, i) => (
+      {data.dimensoes.map((dim) => (
         <div key={dim.id} id={`rm-dim-${dim.id}`} className="scroll-mt-8">
-          <DimensionCard dim={dim} index={i} />
+          <DimensionCard dim={dim} />
         </div>
       ))}
 

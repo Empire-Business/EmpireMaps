@@ -25,7 +25,6 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuth } from '@/contexts/AuthContext'
-import { useImpersonation } from '@/contexts/ImpersonationContext'
 import { useEffectiveClientId } from '@/hooks/useEffectiveClientId'
 import { useContentCards, useCreateCard, useUpdateCard, useDeleteCard } from '@/hooks/useContentCards'
 import { useContentFormats } from '@/hooks/useContentFormats'
@@ -316,7 +315,7 @@ function CardModal({ card, defaultStatus, clientId, canSeeInternalNotes, canDele
     },
   })
 
-  const currentStageTag = watch('stage_tag')
+  watch('stage_tag')
 
   async function onSubmit(data: CardFormData) {
     setError(null)
