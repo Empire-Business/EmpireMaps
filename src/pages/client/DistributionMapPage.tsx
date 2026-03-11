@@ -19,6 +19,8 @@ import {
   CheckCircle2, Calendar, Plus, X, GripVertical, Hash,
   Paperclip, FileIcon,
 } from 'lucide-react'
+import { useAuth } from '@/contexts/AuthContext'
+import { useImpersonation } from '@/contexts/ImpersonationContext'
 import { useEffectiveClientId } from '@/hooks/useEffectiveClientId'
 import { useContentCards, useCreateCard, useUpdateCard } from '@/hooks/useContentCards'
 import { useSocialProfiles } from '@/hooks/useSocialProfiles'
@@ -466,7 +468,11 @@ function QuickAddModal({ date, clientId, onClose }: { date: Date; clientId: stri
 
 // ---- Main Page ----
 export default function DistributionMapPage() {
+  const { profile } = useAuth()
+  const { impersonatedClient } = useImpersonation()
   const clientId = useEffectiveClientId()
+
+  const isStaff = profile?.role === 'admin' || profile?.role === 'consultant'
 
   const { data: cards, isLoading } = useContentCards(clientId)
   const updateCard = useUpdateCard()
@@ -601,6 +607,21 @@ export default function DistributionMapPage() {
   const planningRate = totalInMonth > 0 ? Math.round(((scheduledInMonth + publishedInMonth) / totalInMonth) * 100) : 0
 
   const activeFilters = (filterChannel !== 'all' ? 1 : 0) + (filterStatus !== 'all' ? 1 : 0)
+
+  if (isStaff && !impersonatedClient && !profile?.parent_client_id) {
+    return (
+      <div className="p-8 space-y-4">
+        <div className="section-label">Fase 3</div>
+        <h1 className="font-display text-[2.5rem] font-bold text-empire-ink tracking-[-0.02em] leading-tight">Mapa de Distribuição</h1>
+        <div className="bg-empire-bone border border-empire-ghost px-6 py-10 text-center max-w-md">
+          <p className="text-empire-steel/70 text-sm mb-1">Nenhum cliente selecionado.</p>
+          <p className="text-empire-steel/40 text-xs">
+            Acesse o painel de um cliente via <span className="text-empire-gold/70">Gestão de Usuários</span> para visualizar o mapa de distribuição.
+          </p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="p-8 space-y-6">

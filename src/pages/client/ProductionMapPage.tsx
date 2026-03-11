@@ -25,6 +25,7 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuth } from '@/contexts/AuthContext'
+import { useImpersonation } from '@/contexts/ImpersonationContext'
 import { useEffectiveClientId } from '@/hooks/useEffectiveClientId'
 import { useContentCards, useCreateCard, useUpdateCard, useDeleteCard } from '@/hooks/useContentCards'
 import { useContentFormats } from '@/hooks/useContentFormats'
@@ -231,6 +232,7 @@ function CardModal({ card, defaultStatus, clientId, canSeeInternalNotes, canDele
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [reuseLoading, setReuseLoading] = useState(false)
   const [reuseResult, setReuseResult] = useState<ReuseResult | null>(null)
+  const [selectedProfiles, setSelectedProfiles] = useState<string[]>(card?.destination_profiles ?? [])
 
   async function handleSuggestReuse() {
     if (!card) return
@@ -289,7 +291,7 @@ function CardModal({ card, defaultStatus, clientId, canSeeInternalNotes, canDele
     }
   }
 
-  const { register, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm<CardFormData>({
+  const { register, handleSubmit, watch, setValue, formState: { errors, isSubmitting } } = useForm<CardFormData>({
     resolver: zodResolver(cardSchema),
     defaultValues: {
       title: card?.title ?? '',
@@ -324,9 +326,7 @@ function CardModal({ card, defaultStatus, clientId, canSeeInternalNotes, canDele
         ? data.labels.split(',').map((l) => l.trim()).filter(Boolean)
         : null
 
-      const destinationProfiles = data.destination_profiles
-        ? data.destination_profiles.split(',').map((p) => p.trim()).filter(Boolean)
-        : null
+      const destinationProfiles = selectedProfiles.length > 0 ? selectedProfiles : null
 
       const payload = {
         title: data.title,
@@ -671,19 +671,46 @@ function CardModal({ card, defaultStatus, clientId, canSeeInternalNotes, canDele
             </div>
 
             <div>
-              <label className="block text-sm text-empire-steel/80 mb-1.5">
-                Perfis de Destino
-                {socialProfiles && socialProfiles.length > 0 && (
-                  <span className="text-xs text-empire-steel/40 ml-1">
-                    (disponíveis: {socialProfiles.map(p => `@${p.handle}`).join(', ')})
-                  </span>
-                )}
-              </label>
-              <input
-                {...register('destination_profiles')}
-                className="w-full bg-empire-mist border border-empire-ghost text-empire-ink px-4 py-2.5 text-sm focus:outline-none focus:border-empire-gold/50 transition-colors"
-                placeholder="@perfil1, @perfil2 (separados por vírgula)"
-              />
+              <label className="block text-sm text-empire-steel/80 mb-1.5">Perfis de Destino</label>
+              {socialProfiles && socialProfiles.length > 0 ? (
+                <div className="border border-empire-ghost bg-empire-mist p-3 space-y-2 max-h-40 overflow-y-auto">
+                  {socialProfiles.map((p) => {
+                    const key = `${p.platform} · @${p.handle}`
+                    const checked = selectedProfiles.includes(key)
+                    return (
+                      <label key={p.id} className="flex items-center gap-2 cursor-pointer group">
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => {
+                            const next = checked
+                              ? selectedProfiles.filter((x) => x !== key)
+                              : [...selectedProfiles, key]
+                            setSelectedProfiles(next)
+                            setValue('destination_profiles', next.join(', '))
+                          }}
+                          className="accent-empire-gold w-3.5 h-3.5"
+                        />
+                        <span className="text-sm text-empire-ink/80 group-hover:text-empire-ink transition-colors">
+                          <span className="font-mono text-xs text-empire-steel/50 mr-1">{p.platform}</span>
+                          @{p.handle}
+                        </span>
+                      </label>
+                    )
+                  })}
+                </div>
+              ) : (
+                <div className="space-y-1">
+                  <input
+                    {...register('destination_profiles')}
+                    className="w-full bg-empire-mist border border-empire-ghost text-empire-ink px-4 py-2.5 text-sm focus:outline-none focus:border-empire-gold/50 transition-colors"
+                    placeholder="@perfil1, @perfil2 (separados por vírgula)"
+                  />
+                  <p className="text-xs text-empire-steel/40">
+                    Cadastre perfis em <span className="text-empire-gold/70">Perfis Sociais</span> para seleção rápida.
+                  </p>
+                </div>
+              )}
             </div>
 
             <div>
@@ -961,9 +988,27 @@ function KanbanColumn({ column, cards, activeId, onAddCard, onCardClick }: Kanba
 // ---- Main Page ----
 export default function ProductionMapPage() {
   const { user, profile } = useAuth()
+  const { impersonatedClient } = useImpersonation()
   const clientId = useEffectiveClientId()
 
   const canSeeInternalNotes = profile?.role === 'admin' || profile?.role === 'consultant'
+
+  // Admin/consultant sem cliente selecionado → mostrar aviso
+  const isStaff = profile?.role === 'admin' || profile?.role === 'consultant'
+  if (isStaff && !impersonatedClient && !profile?.parent_client_id) {
+    return (
+      <div className="p-8 space-y-4">
+        <div className="section-label">Fase 3</div>
+        <h1 className="font-display text-[2.5rem] font-bold text-empire-ink tracking-[-0.02em] leading-tight">Mapa de Produção</h1>
+        <div className="bg-empire-bone border border-empire-ghost px-6 py-10 text-center max-w-md">
+          <p className="text-empire-steel/70 text-sm mb-1">Nenhum cliente selecionado.</p>
+          <p className="text-empire-steel/40 text-xs">
+            Acesse o painel de um cliente via <span className="text-empire-gold/70">Gestão de Usuários</span> para visualizar o mapa de produção.
+          </p>
+        </div>
+      </div>
+    )
+  }
 
   const { data: cards, isLoading } = useContentCards(clientId)
   const updateCard = useUpdateCard()
