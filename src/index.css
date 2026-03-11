@@ -94,7 +94,7 @@
     --bone:       #070C14;  /* void — page bg becomes deepest dark */
     --ink:        #FFFFFF;  /* white — primary text on dark */
     --ghost:      rgba(191,197,204,0.1);  /* subtle borders */
-    --mist:       rgba(255,255,255,0.06); /* input bg, section variant */
+    --mist:       #182A3E; /* input bg, section variant — sólido em dark mode */
     --steel:      #BFC5CC;  /* platinum — secondary text */
     --danger:     #E07070;  /* lighter red for dark bg */
     --surface:    #0D1829; /* DS1 dark card bg — empire */
@@ -152,23 +152,38 @@
     color-scheme: dark;
   }
 
-  /* Garante que inputs/selects/textareas em dark mode
-     usem fundo escuro e texto branco — sem herdar fundo branco do browser */
-  .dark input,
+  /* Força form controls em dark mode a usar cores escuras
+     — evita que o browser renderize com fundo branco nativo */
+  .dark input:not([type="checkbox"]):not([type="radio"]),
   .dark select,
   .dark textarea {
-    background-color: rgba(255,255,255,0.06);
+    color-scheme: dark;
+    background-color: #182A3E;
     color: #FFFFFF;
   }
 
-  /* Autofill no browser (Chrome/Safari) — evita fundo amarelo/branco */
+  /* Select sem appearance-none herda fundo branco do OS — forçar escuro */
+  .dark select {
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23BFC5CC' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 36px !important;
+  }
+
+  /* Placeholder em dark mode — evitar branco-no-branco */
+  .dark input::placeholder,
+  .dark textarea::placeholder {
+    color: rgba(191,197,204,0.5);
+  }
+
+  /* Autofill no browser (Chrome/Safari) */
   .dark input:-webkit-autofill,
   .dark input:-webkit-autofill:hover,
-  .dark input:-webkit-autofill:focus,
-  .dark select:-webkit-autofill,
-  .dark textarea:-webkit-autofill {
+  .dark input:-webkit-autofill:focus {
     -webkit-text-fill-color: #FFFFFF;
-    -webkit-box-shadow: 0 0 0px 1000px #0D1829 inset;
+    -webkit-box-shadow: 0 0 0px 1000px #182A3E inset;
     transition: background-color 5000s ease-in-out 0s;
   }
 
