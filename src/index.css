@@ -147,6 +147,31 @@
     background: color-mix(in srgb, var(--bone) 82%, transparent);
   }
 
+  /* ─── DS1 Dark mode form controls ─── */
+  .dark {
+    color-scheme: dark;
+  }
+
+  /* Garante que inputs/selects/textareas em dark mode
+     usem fundo escuro e texto branco — sem herdar fundo branco do browser */
+  .dark input,
+  .dark select,
+  .dark textarea {
+    background-color: rgba(255,255,255,0.06);
+    color: #FFFFFF;
+  }
+
+  /* Autofill no browser (Chrome/Safari) — evita fundo amarelo/branco */
+  .dark input:-webkit-autofill,
+  .dark input:-webkit-autofill:hover,
+  .dark input:-webkit-autofill:focus,
+  .dark select:-webkit-autofill,
+  .dark textarea:-webkit-autofill {
+    -webkit-text-fill-color: #FFFFFF;
+    -webkit-box-shadow: 0 0 0px 1000px #0D1829 inset;
+    transition: background-color 5000s ease-in-out 0s;
+  }
+
   /* ─── DS1 Scrollbar dark mode ─── */
   .dark ::-webkit-scrollbar-track {
     background: var(--void);
